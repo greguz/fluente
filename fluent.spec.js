@@ -71,6 +71,7 @@ test('locking', t => {
 
 test('branching', t => {
   const instance = fluente({
+    branch: true,
     produce: immer.produce,
     state: {
       value: 0

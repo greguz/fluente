@@ -29,6 +29,7 @@ export interface Options<
   constants?: C
   produce?: Producer<S>
   historySize?: number
+  branch?: boolean
 }
 
 export declare type Instance<

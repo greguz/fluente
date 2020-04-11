@@ -28,7 +28,7 @@ function createState (options) {
     normalMethods: options.methods || {},
     constants: options.constants || {},
     historySize: options.historySize || 10,
-    isMutable: !options.produce,
+    isBranchable: !!options.produce && options.branch === true,
     isLocked: false,
     past: [],
     present: options.state || {},
@@ -39,9 +39,9 @@ function createState (options) {
 
 function unwrapState (state) {
   if (state.isLocked) {
-    throw new Error('Locked object')
+    throw new Error('Locked')
   }
-  if (state.isMutable) {
+  if (!state.isBranchable) {
     state.isLocked = true
   }
   return state.present
