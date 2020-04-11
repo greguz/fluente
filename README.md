@@ -50,10 +50,12 @@ if (calculator[Symbol.for('calculator')] === true) {
     .sub(4)
     .mul(-1)
     .div(2)
+    .undo(2)
+    .redo(1)
     .unwrap()
 
   console.log(result)
 }
 
-// Will log '1'
+// Will log '2'
 ```
