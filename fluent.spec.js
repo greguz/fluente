@@ -1,4 +1,5 @@
 const test = require('ava')
+const immer = require('immer')
 
 const fluente = require('./fluente.js')
 
@@ -66,4 +67,29 @@ test('locking', t => {
   const instance = fluente()
   instance.undo()
   t.throws(instance.undo)
+})
+
+test('branching', t => {
+  const instance = fluente({
+    produce: immer.produce,
+    state: {
+      value: 0
+    },
+    fluent: {
+      add (value) {
+        t.pass()
+        return {
+          value: this.value + value
+        }
+      }
+    },
+    methods: {
+      unwrap () {
+        return this.value
+      }
+    }
+  })
+
+  t.is(instance.add(+1).unwrap(), +1)
+  t.is(instance.add(-1).unwrap(), -1)
 })

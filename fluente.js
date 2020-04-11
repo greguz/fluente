@@ -28,6 +28,7 @@ function createState (options) {
     normalMethods: options.methods || {},
     constants: options.constants || {},
     historySize: options.historySize || 10,
+    isMutable: !options.produce,
     isLocked: false,
     past: [],
     present: options.state || {},
@@ -38,9 +39,11 @@ function createState (options) {
 
 function unwrapState (state) {
   if (state.isLocked) {
-    throw new Error('This object is not mutable')
+    throw new Error('Locked object')
   }
-  state.isLocked = true
+  if (state.isMutable) {
+    state.isLocked = true
+  }
   return state.present
 }
 
