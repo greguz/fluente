@@ -1,7 +1,7 @@
 {
   "name": "fluente",
   "version": "0.1.0",
-  "description": "",
+  "description": "Make fluent API like a boss!",
   "main": "fluente.js",
   "types": "fluente.d.ts",
   "files": [
@@ -11,7 +11,7 @@
   "scripts": {
     "test:lint": "eslint **/*.js",
     "test:unit": "ava",
-    "test:coverage": "nyc ava",
+    "test:coverage": "nyc --reporter=lcov --reporter=text-summary ava",
     "test": "npm run test:lint && npm run test:unit"
   },
   "author": "Giacomo Gregoletto",
@@ -38,10 +38,7 @@
   "nyc": {
     "all": true,
     "include": [
-      "**/*.js"
-    ],
-    "exclude": [
-      "**/*.spec.js"
+      "fluente.js"
     ]
   }
 }
