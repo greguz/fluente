@@ -36,16 +36,16 @@ test('lifecycle', t => {
       value: 0
     },
     fluent: {
-      add (value) {
+      add (state, value) {
         t.pass()
         return {
-          value: this.value + value
+          value: state.value + value
         }
       }
     },
     methods: {
-      unwrap () {
-        return this.value
+      unwrap (state) {
+        return state.value
       }
     }
   })
@@ -77,16 +77,14 @@ test('branching', t => {
       value: 0
     },
     fluent: {
-      add (value) {
+      add (state, value) {
         t.pass()
-        return {
-          value: this.value + value
-        }
+        state.value += value
       }
     },
     methods: {
-      unwrap () {
-        return this.value
+      unwrap (state) {
+        return state.value
       }
     }
   })

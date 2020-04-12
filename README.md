@@ -15,30 +15,35 @@ const fluente = require('fluente')
 const immer = require('immer')
 
 const calculator = fluente({
+  // Use immer to handle state changes
   produce: immer.produce,
-  historySize: 100,
+  // Define initial state
   state: {
     value: 0
   },
+  // Define fluent methods
   fluent: {
-    add (value) {
-      this.value += value
+    add (state, value) {
+      state.value += value
     },
-    sub (value) {
-      this.value -= value
+    subtract (state, value) {
+      state.value -= value
     },
-    mul (value) {
-      this.value *= value
+    multiply (state, value) {
+      state.value *= value
     },
-    div (value) {
-      this.value /= value
+    divide (state, value) {
+      state.value /= value
     }
   },
+  // Define non-fluent methods
   methods: {
-    unwrap () {
-      return this.value
+    // Expose the current value (otherwise hidden)
+    unwrap (state) {
+      return state.value
     }
   },
+  // Define constant properties
   constants: {
     [Symbol.for('calculator')]: true
   }
@@ -47,15 +52,14 @@ const calculator = fluente({
 if (calculator[Symbol.for('calculator')] === true) {
   const result = calculator
     .add(2)
-    .sub(4)
-    .mul(-1)
-    .div(2)
+    .subtract(4)
+    .multiply(-1)
+    .divide(2)
     .undo(2)
-    .redo(1)
+    .redo() // Defaults to 1
     .unwrap()
 
+  // Logs '2'
   console.log(result)
 }
-
-// Will log '2'
 ```

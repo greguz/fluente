@@ -47,16 +47,12 @@ function unwrapState (state) {
   return state.present
 }
 
-function updateState (state, method, args) {
-  const newContext = state.produce(
-    unwrapState(state),
-    oldContext => method.call(oldContext, ...args)
-  )
+function updateState (state, context) {
   return {
     ...state,
     isLocked: false,
     past: takeRight([...state.past, state.present], state.historySize),
-    present: newContext,
+    present: context,
     future: []
   }
 }
@@ -95,15 +91,23 @@ function redoState (state, steps = 1) {
   }
 }
 
-function fluentify (state, method) {
+function fluentify (state, fn) {
   return function fluentMethod (...args) {
-    return buildState(updateState(state, method, args))
+    return buildState(
+      updateState(
+        state,
+        state.produce(
+          unwrapState(state),
+          context => fn(context, ...args)
+        )
+      )
+    )
   }
 }
 
-function bind (state, method) {
+function bind (state, fn) {
   return function normalMethod (...args) {
-    return method.call(unwrapState(state), ...args)
+    return fn(unwrapState(state), ...args)
   }
 }
 
