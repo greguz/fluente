@@ -28,7 +28,7 @@ function createState (options) {
     normalMethods: options.methods || {},
     constants: options.constants || {},
     historySize: options.historySize || 10,
-    isBranchable: !!options.produce && options.branch === true,
+    isBranchable: !!options.branch,
     isLocked: false,
     past: [],
     present: options.state || {},
