@@ -2,6 +2,8 @@
 
 [![npm version](https://badge.fury.io/js/fluente.svg)](https://badge.fury.io/js/fluente)
 [![Dependencies Status](https://david-dm.org/greguz/fluente.svg)](https://david-dm.org/greguz/fluente.svg)
+[![Build Status](https://travis-ci.com/greguz/fluente.svg?branch=master)](https://travis-ci.com/greguz/fluente)
+[![Coverage Status](https://coveralls.io/repos/github/greguz/fluente/badge.svg?branch=master)](https://coveralls.io/github/greguz/fluente?branch=master)
 
 Make fluent API like a boss!
 
