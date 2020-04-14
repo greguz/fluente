@@ -11,13 +11,16 @@
   "scripts": {
     "test:lint": "eslint **/*.js",
     "test:unit": "ava",
-    "test:coverage": "nyc --reporter=lcov --reporter=text-summary ava",
-    "test": "npm run test:lint && npm run test:unit"
+    "test": "npm run test:lint && npm run test:unit",
+    "coverage:make": "nyc --reporter=lcov --reporter=text-summary ava",
+    "coverage:send": "nyc report --reporter=text-lcov | coveralls",
+    "coverage": "npm run coverage:make && npm run coverage:send"
   },
   "author": "Giacomo Gregoletto",
   "license": "MIT",
   "devDependencies": {
-    "ava": "^3.6.0",
+    "ava": "^3.7.0",
+    "coveralls": "^3.0.11",
     "eslint": "^6.8.0",
     "eslint-config-standard": "^14.1.1",
     "eslint-plugin-import": "^2.20.2",
