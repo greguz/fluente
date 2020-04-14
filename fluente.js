@@ -41,9 +41,7 @@ function unwrapState (state) {
   if (state.isLocked) {
     throw new Error('Locked')
   }
-  if (!state.isBranchable) {
-    state.isLocked = true
-  }
+  state.isLocked = !state.isBranchable
   return state.present
 }
 
