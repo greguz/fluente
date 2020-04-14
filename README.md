@@ -1,5 +1,8 @@
 # fluente
 
+[![npm version](https://badge.fury.io/js/fluente.svg)](https://badge.fury.io/js/fluente)
+[![Dependencies Status](https://david-dm.org/greguz/fluente.svg)](https://david-dm.org/greguz/fluente.svg)
+
 Make fluent API like a boss!
 
 ## Installation
