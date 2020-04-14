@@ -1,5 +1,6 @@
 const test = require('ava')
 const immer = require('immer')
+const immutable = require('immutable')
 
 const fluente = require('./fluente.js')
 
@@ -69,7 +70,9 @@ test('locking', t => {
   t.throws(instance.undo)
 })
 
-test('branching', t => {
+test('immer', t => {
+  t.plan(6)
+
   const instance = fluente({
     branch: true,
     produce: immer.produce,
@@ -84,7 +87,38 @@ test('branching', t => {
     },
     methods: {
       unwrap (state) {
+        t.pass()
         return state.value
+      }
+    }
+  })
+
+  t.is(instance.add(+1).unwrap(), +1)
+  t.is(instance.add(-1).unwrap(), -1)
+})
+
+test('immutable', t => {
+  t.plan(6)
+
+  const instance = fluente({
+    branch: true,
+    produce: (state, mapper) => mapper(state),
+    state: immutable.Map({
+      value: 0
+    }),
+    fluent: {
+      add (state, value) {
+        t.pass()
+        return state.set(
+          'value',
+          state.get('value') + value
+        )
+      }
+    },
+    methods: {
+      unwrap (state) {
+        t.pass()
+        return state.get('value')
       }
     }
   })

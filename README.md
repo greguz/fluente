@@ -20,7 +20,7 @@ const fluente = require('fluente')
 const immer = require('immer')
 
 const calculator = fluente({
-  // Use immer to handle state changes
+  // Use Immer to handle state changes
   produce: immer.produce,
   // Define initial state
   state: {
@@ -71,6 +71,7 @@ if (calculator[Symbol.for('calculator')] === true) {
 
 ## Core features
 
+- **Zero dependencies:** small footprint.
 - **Less code:** provides a concise way to define fluent objects.
 - **Protected state:** there's no way to access it externally.
 - **Undo/Redo out of the box**
@@ -123,13 +124,13 @@ class Calculator {
   }
 }
 
-const calculator = new Calculator()
+const calculator = new Calculator(40)
 
 const value = calculator
-  .add(1)
+  .add(2)
   .unwrap()
 
-console.log(value) // 1
+console.log(value) // 42
 ```
 
 Fluente takes state mappers as input and returns the built object, limiting repetitive code. The state is hidden, preventing external access. And a nice undo-redo feature is added.
@@ -160,14 +161,14 @@ function createCalculator (initialValue = 0) {
   })
 }
 
-const value = createCalculator()
-  .add(1)
+const value = createCalculator(40)
+  .add(2)
   .add(NaN)
   .undo(2)
-  .redo(1)
+  .redo() // Defaults to 1
   .unwrap()
 
-console.log(value) // 1
+console.log(value) // 42
 ```
 
 ## Direct state manipulation
@@ -198,6 +199,7 @@ function mySimpleProducer (oldState, mapper) {
 
 function createCalculator (initialValue = 0) {
   return fluente({
+    // Define custom producer
     produce: mySimpleProducer,
     state: {
       value: initialValue
@@ -216,17 +218,57 @@ function createCalculator (initialValue = 0) {
   })
 }
 
-const value = createCalculator()
-  .add(1)
+const value = createCalculator(40)
+  .add(2)
   .add(NaN)
   .undo(2)
-  .redo(1)
+  .redo() // Defaults to 1
   .unwrap()
 
-console.log(value) // 1
+console.log(value) // 42
 ```
 
-The easiest and safest way to support direct state manipulation is to use Immer's `produce` function, as shown in the [example](#example).
+The easiest and safest way to support direct state manipulation is to use [Immer](https://www.npmjs.com/package/immer)'s `produce` function, as shown in the [this example](#example). [Immutable](https://www.npmjs.com/package/immutable) is also supported, as shown in the next section.
+
+```javascript
+const fluente = require('fluente')
+const { Map } = require('immutable')
+
+function createCalculator (initialValue = 0) {
+  return fluente({
+    // Direct mapping (function returns a fully updated state)
+    produce: (state, mapper) => mapper(state),
+    // Init immutable state
+    state: Map({
+      value: initialValue
+    }),
+    fluent: {
+      add (state, value) {
+        // Use immutable state inside all functions
+        return state.set(
+          'value',
+          state.get('value') + value
+        )
+      }
+    },
+    methods: {
+      unwrap (state) {
+        // Use immutable state inside all functions
+        return state.get('value')
+      }
+    }
+  })
+}
+
+const value = createCalculator(40)
+  .add(2)
+  .add(NaN)
+  .undo(2)
+  .redo() // Defaults to 1
+  .unwrap()
+
+console.log(value) // 42
+```
 
 ## Branching
 
