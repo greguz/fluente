@@ -8,6 +8,9 @@
     "fluente.js",
     "fluente.d.ts"
   ],
+  "keywords": [
+    "fluent"
+  ],
   "scripts": {
     "test:lint": "eslint **/*.js",
     "test:unit": "ava",
