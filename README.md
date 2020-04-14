@@ -36,7 +36,7 @@ const calculator = fluente({
       state.value /= value
     }
   },
-  // Define state mappers
+  // Define normal mappers
   methods: {
     // Expose current value (otherwise hidden)
     unwrap (state) {
@@ -79,81 +79,185 @@ The whole library consists of just one function. Everything is optional.
 - `options` `<Object>`
   - `state` `<Object>` Initial state.
   - `fluent` `<Object>` Fluent state mappers.
-  - `methods` `<Object>` Simple state mappers.
+  - `methods` `<Object>` Normal state mappers.
   - `constants` `<Object>`
   - `historySize` `<Number>` Defaults to `10`.
-  - `produce` `<Function>` See [producer](#producer).
+  - `produce` `<Function>` See [direct state manipulation](#direct-state-manipulation).
   - `branch` `<Boolean>` See [branching](#branching).
 - Returns: `<Object>`
 
 ## State mappers
 
-A fluent method is a function that updates its state and then returns its context. Classes use "`return this`" approach, Closures use recursion. In any case, there's some glue-code to write to make it happen.
+A fluent method is a function that updates its state and then returns its context. Classes use "`return this`" approach, Closures use recursion to achieve this result. In any case, there's some glue-code to write to make it happen.
 
-Removing all repetitive code, a fluent method is just a state mapper: a function that takes some arguments and then maps the state into a new one.
+Any function (or method) essentially is just a state mapper: a function that takes some arguments and then maps its current state into something useful. Fluent functions perform some state updates. Normal functions map the state into something new.
 
-Fluente accepts state mappers as input and returns the built object, hiding all the noisy details of a correct fluent implementation.
+```javascript
+class Calculator {
+  constructor (value = 0) {
+    // Init state
+    this._value = value
+  }
+
+  /**
+   * Fluent method
+   */
+  add (value) {
+    // Update state
+    this._value += value
+    // Return context
+    return this
+  }
+
+  /**
+   * Normal method
+   */
+  unwrap () {
+    // Get one state's property
+    return this._value
+  }
+}
+
+const calculator = new Calculator()
+
+const value = calculator
+  .add(1)
+  .unwrap()
+
+console.log(value) // 1
+```
+
+Fluente takes state mappers as input and returns the built object, limiting repetitive code. The state is hidden, preventing external access. And a nice undo-redo feature is added.
 
 ```javascript
 const fluente = require('fluente')
 
-// Simple state mapper (maps state into something)
-function toDate (state) {
-  return new Date(state.date.getTime())
-}
-
-// Fluent state mapper (returns updated state)
-function minutes (state, n) {
-  const date = toDate(state)
-  date.setMinutes(n)
-  return { date }
-}
-
-// A partially working moment clone
-function moment (value) {
+function createCalculator (initialValue = 0) {
   return fluente({
-    // Define initial state
+    // Init state
     state: {
-      date: new Date(value)
+      value: initialValue
     },
-    // Define fluent methods
+    // Define fluent functions
     fluent: {
-      minutes
+      add (state, value) {
+        return {
+          value: state.value + value
+        }
+      }
     },
-    // Define other methods
+    // Define normal functions
     methods: {
-      toDate
+      unwrap (state) {
+        return state.value
+      }
     }
   })
 }
 
-const iso = moment(1586697974621)
-  .minutes(11)
-  .toDate()
-  .toISOString()
+const value = createCalculator()
+  .add(1)
+  .add(NaN)
+  .undo(2)
+  .redo(1)
+  .unwrap()
 
-// 2020-04-12T13:11:14.621Z
-console.log(iso)
+console.log(value) // 1
 ```
 
-## Producer
+## Direct state manipulation
 
-A Producer is a function that accepts both state object and map function. Its purpose is to handle any map mutations applied against the state and then return a new and fully updated state.
-
-By default, all fluent mappers need to return an updated state, even partially, to let Fluente know what is changed. Plus state needs to be treated as immutable.
+By default, all fluent functions need to return an updated state, even partially, to let Fluente know _what_ is changed. Plus state needs to be treated as **immutable**. Those rules are necessary to ensure the correct state undo and redo.
 
 ```javascript
-function defaultProducer (state, mapper) {
-  return Object.assign(
-    {},
-    state,
-    mapper(state)
-  )
+function subtract (state, value) {
+  return {
+    value: state.value - value
+  }
 }
 ```
 
-The easiest way to support direct state manipulation is to use Immer's `produce` function, as shown in the [example](#example).
+However, direct state manipulation is viable through a custom Producer. A Producer is a function that accepts both state object and map function. Its purpose is to handle any map mutations applied against the state and then return a new and fully updated state.
+
+```javascript
+const fluente = require('fluente')
+
+function mySimpleProducer (oldState, mapper) {
+  // Clone current state
+  const newState = Object.assign({}, oldState)
+  // Run state mapper (may override some root properties now)
+  mapper(newState)
+  // Return updated state
+  return newState
+}
+
+function createCalculator (initialValue = 0) {
+  return fluente({
+    produce: mySimpleProducer,
+    state: {
+      value: initialValue
+    },
+    fluent: {
+      add (state, value) {
+        // Direct state manipulation
+        state.value += value
+      }
+    },
+    methods: {
+      unwrap (state) {
+        return state.value
+      }
+    }
+  })
+}
+
+const value = createCalculator()
+  .add(1)
+  .add(NaN)
+  .undo(2)
+  .redo(1)
+  .unwrap()
+
+console.log(value) // 1
+```
+
+The easiest and safest way to support direct state manipulation is to use Immer's `produce` function, as shown in the [example](#example).
 
 ## Branching
 
 A fluent method call generates a new object and invalidates the previous one, ensuring only the last version is usable. Enabling branching will cause old objects to be still valid.
+
+```javascript
+const fluente = require('fluente')
+
+function createCalculator (initialValue = 0) {
+  return fluente({
+    // Enable branching
+    branch: true,
+    state: {
+      value: initialValue
+    },
+    fluent: {
+      add (state, value) {
+        return {
+          value: state.value + value
+        }
+      }
+    },
+    methods: {
+      unwrap (state) {
+        return state.value
+      }
+    }
+  })
+}
+
+const cZero = createCalculator()
+const cOne = cZero.add(1)
+const cUniverse = cZero.add(42)
+console.log(
+  cZero.unwrap(),
+  cOne.unwrap(),
+  cUniverse.unwrap()
+)
+```
