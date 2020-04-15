@@ -60,8 +60,8 @@ if (calculator[Symbol.for('calculator')] === true) {
     .subtract(4)
     .multiply(-1)
     .divide(2)
-    .undo(2)
-    .redo() // Defaults to 1
+    .undo(2) // Undo 2 mutations: divide(2) and multiply(-1)
+    .redo(1) // Redo 1 mutation: multiply(-1)
     .unwrap()
 
   // Logs '2'
@@ -133,7 +133,7 @@ const value = calculator
 console.log(value) // 42
 ```
 
-Fluente takes state mappers as input and returns the built object, limiting repetitive code. The state is hidden, preventing external access. And a nice undo-redo feature is added.
+Fluente takes state mappers as input and returns the built object, limiting repetitive code. The state is hidden, preventing external access. And a nice [undo-redo](#undo-and-redo) feature is added.
 
 ```javascript
 const fluente = require('fluente')
@@ -164,12 +164,18 @@ function createCalculator (initialValue = 0) {
 const value = createCalculator(40)
   .add(2)
   .add(NaN)
-  .undo(2)
-  .redo() // Defaults to 1
+  .undo(2) // Undo 2 mutations: add(NaN) and add(2)
+  .redo(1) // Redo 1 mutation: add(2)
   .unwrap()
 
 console.log(value) // 42
 ```
+
+## Undo and Redo
+
+An always-cloned state enables easy undo-redo implementation. The current state represents the present moment. Applying a mutation move the present into the past, and set a new present state. Undoing a mutation will restore a state from the past, and move the present state into the future. Redoing a mutation will do the opposite. A more detailed example is available in [this](https://redux.js.org/recipes/implementing-undo-history) Redux article.
+
+Fluente automatically injects undo-redo functions. Both functions optionally accept the number of mutations to apply, defaulting to one mutation. `Infinity` is accepted, and means "do all the mutations available".
 
 ## Direct state manipulation
 
@@ -217,15 +223,6 @@ function createCalculator (initialValue = 0) {
     }
   })
 }
-
-const value = createCalculator(40)
-  .add(2)
-  .add(NaN)
-  .undo(2)
-  .redo() // Defaults to 1
-  .unwrap()
-
-console.log(value) // 42
 ```
 
 The easiest and safest way to support direct state manipulation is to use [Immer](https://www.npmjs.com/package/immer)'s `produce` function, as shown in the [this example](#example). [Immutable](https://www.npmjs.com/package/immutable) is also supported, as shown in the next section.
@@ -259,15 +256,6 @@ function createCalculator (initialValue = 0) {
     }
   })
 }
-
-const value = createCalculator(40)
-  .add(2)
-  .add(NaN)
-  .undo(2)
-  .redo() // Defaults to 1
-  .unwrap()
-
-console.log(value) // 42
 ```
 
 ## Branching
@@ -299,6 +287,7 @@ function createCalculator (initialValue = 0) {
   })
 }
 
+// cZero is used 3 times, and no errors are thrown
 const cZero = createCalculator()
 const cOne = cZero.add(1)
 const cUniverse = cZero.add(42)
