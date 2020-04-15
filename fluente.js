@@ -1,3 +1,5 @@
+'use strict'
+
 function mapValues (object, iteratee) {
   return Object.keys(object).reduce(
     (acc, key) => {
