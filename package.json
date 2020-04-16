@@ -1,6 +1,6 @@
 {
   "name": "fluente",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Make fluent API like a boss!",
   "main": "fluente.js",
   "types": "fluente.d.ts",
