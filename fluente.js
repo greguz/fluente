@@ -16,11 +16,11 @@ function takeRight (array, n) {
     : array
 }
 
-function defaultProducer (context, mapper) {
+function defaultProducer (state, mapper) {
   return Object.assign(
     {},
-    context,
-    mapper(context)
+    state,
+    mapper(state)
   )
 }
 
@@ -57,7 +57,13 @@ function updateState (state, context) {
   }
 }
 
-function undoState (state, steps = 1) {
+function parseSteps (steps = 1) {
+  return typeof steps !== 'number' || isNaN(steps) || steps < 0
+    ? 0
+    : steps
+}
+
+function undoState (state, steps) {
   const past = [...state.past]
   let present = unwrapState(state)
   const future = [...state.future]
@@ -74,7 +80,7 @@ function undoState (state, steps = 1) {
   }
 }
 
-function redoState (state, steps = 1) {
+function redoState (state, steps) {
   const past = [...state.past]
   let present = unwrapState(state)
   const future = [...state.future]
@@ -115,10 +121,10 @@ function buildState (state) {
   return Object.assign(
     {
       undo (steps) {
-        return buildState(undoState(state, steps))
+        return buildState(undoState(state, parseSteps(steps)))
       },
       redo (steps) {
-        return buildState(redoState(state, steps))
+        return buildState(redoState(state, parseSteps(steps)))
       }
     },
     state.constants,

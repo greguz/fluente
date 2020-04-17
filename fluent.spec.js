@@ -126,3 +126,39 @@ test('immutable', t => {
   t.is(instance.add(+1).unwrap(), +1)
   t.is(instance.add(-1).unwrap(), -1)
 })
+
+test('steps validation', t => {
+  const instance = fluente({
+    historySize: 3,
+    state: {
+      value: 0
+    },
+    fluent: {
+      add (state, value) {
+        return {
+          value: state.value + value
+        }
+      }
+    },
+    methods: {
+      unwrap (state) {
+        return state.value
+      }
+    }
+  })
+
+  const result = instance
+    .add(1)
+    .add(1)
+    .add(1)
+    .add(1)
+    .add(1)
+    .undo(null)
+    .undo("1")
+    .undo(NaN)
+    .undo(-5)
+    .undo(-Infinity)
+    .unwrap()
+
+  t.is(result, 5)
+})
