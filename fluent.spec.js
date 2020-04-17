@@ -154,7 +154,7 @@ test('steps validation', t => {
     .add(1)
     .add(1)
     .undo(null)
-    .undo("1")
+    .undo('1')
     .undo(NaN)
     .undo(-5)
     .undo(-Infinity)
