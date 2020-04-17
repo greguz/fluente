@@ -64,9 +64,9 @@ function parseSteps (steps = 1) {
 }
 
 function undoState (state, steps) {
-  const past = [...state.past]
+  const past = state.past.slice()
   let present = unwrapState(state)
-  const future = [...state.future]
+  const future = state.future.slice()
   for (let i = 0; i < steps && past.length > 0; i++) {
     future.push(present)
     present = past.pop()
@@ -81,9 +81,9 @@ function undoState (state, steps) {
 }
 
 function redoState (state, steps) {
-  const past = [...state.past]
+  const past = state.past.slice()
   let present = unwrapState(state)
-  const future = [...state.future]
+  const future = state.future.slice()
   for (let i = 0; i < steps && future.length > 0; i++) {
     past.push(present)
     present = future.pop()
@@ -120,10 +120,10 @@ function bind (state, fn) {
 function buildState (state) {
   return Object.assign(
     {
-      undo (steps) {
+      undo: function undoMethod (steps) {
         return buildState(undoState(state, parseSteps(steps)))
       },
-      redo (steps) {
+      redo: function redoMethod (steps) {
         return buildState(redoState(state, parseSteps(steps)))
       }
     },
