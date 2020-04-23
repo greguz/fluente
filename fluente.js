@@ -50,16 +50,19 @@ function unwrapState (state) {
   return state.present
 }
 
+function assignState (state, partial) {
+  return state.isShareable
+    ? Object.assign(state, partial)
+    : Object.assign({}, state, partial)
+}
+
 function updateState (state, context) {
-  const partial = {
+  return assignState(state, {
     isLocked: false,
     past: takeRight([...state.past, state.present], state.historySize),
     present: context,
     future: []
-  }
-  return state.isShareable
-    ? Object.assign(state, partial)
-    : Object.assign({}, state, partial)
+  })
 }
 
 function parseSteps (steps = 1) {
@@ -76,13 +79,12 @@ function undoState (state, steps) {
     future.push(present)
     present = past.pop()
   }
-  return {
-    ...state,
+  return assignState(state, {
     isLocked: false,
     past,
     present,
     future
-  }
+  })
 }
 
 function redoState (state, steps) {
@@ -93,13 +95,12 @@ function redoState (state, steps) {
     past.push(present)
     present = future.pop()
   }
-  return {
-    ...state,
+  return assignState(state, {
     isLocked: false,
     past,
     present,
     future
-  }
+  })
 }
 
 function fluentify (state, fn) {

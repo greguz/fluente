@@ -188,6 +188,8 @@ test('sharing', t => {
   instance.add(1)
   instance.add(1)
   instance.add(1)
+  instance.undo(2)
+  instance.redo(1)
 
-  t.is(instance.unwrap(), 5)
+  t.is(instance.unwrap(), 4)
 })
