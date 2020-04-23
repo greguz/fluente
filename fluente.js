@@ -32,8 +32,8 @@ function createState (options) {
     normalMethods: options.methods || {},
     constants: options.constants || {},
     historySize: options.historySize || 10,
-    isShareable: !!options.share,
-    isBranchable: !!options.branch,
+    sharedState: !!options.sharedState,
+    skipLocking: !!options.skipLocking,
     isLocked: false,
     past: [],
     present: options.state || {},
@@ -46,12 +46,12 @@ function unwrapState (state) {
   if (state.isLocked) {
     throw new Error('Locked')
   }
-  state.isLocked = !state.isBranchable
+  state.isLocked = !state.skipLocking
   return state.present
 }
 
 function assignState (state, partial) {
-  return state.isShareable
+  return state.sharedState
     ? Object.assign(state, partial)
     : Object.assign({}, state, partial)
 }

@@ -5,7 +5,7 @@ const immutable = require('immutable')
 const fluente = require('./fluente.js')
 
 function noop () {
-  // nothing
+  // Nothing
 }
 
 test('interface', t => {
@@ -65,16 +65,26 @@ test('lifecycle', t => {
 })
 
 test('locking', t => {
-  const instance = fluente()
-  instance.undo()
+  const instance = fluente({
+    fluent: {
+      a: noop
+    },
+    methods: {
+      b: noop
+    }
+  })
+  instance.b()
+  t.throws(instance.a)
+  t.throws(instance.b)
   t.throws(instance.undo)
+  t.throws(instance.redo)
 })
 
 test('immer', t => {
   t.plan(6)
 
   const instance = fluente({
-    branch: true,
+    skipLocking: true,
     produce: immer.produce,
     state: {
       value: 0
@@ -101,7 +111,7 @@ test('immutable', t => {
   t.plan(6)
 
   const instance = fluente({
-    branch: true,
+    skipLocking: true,
     produce: (state, mapper) => mapper(state),
     state: immutable.Map({
       value: 0
@@ -165,7 +175,7 @@ test('steps validation', t => {
 
 test('sharing', t => {
   const instance = fluente({
-    share: true,
+    sharedState: true,
     state: {
       value: 0
     },
