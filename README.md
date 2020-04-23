@@ -90,6 +90,7 @@ The whole library consists of just one function. Everything is optional.
   - `historySize` `<Number>` Defaults to `10`.
   - `produce` `<Function>` See [direct state manipulation](#direct-state-manipulation).
   - `branch` `<Boolean>` See [branching](#branching).
+  - `share` `<Boolean>` See [sharing](#sharing).
 - Returns: `<Object>`
 
 ## State mappers
@@ -296,4 +297,43 @@ console.log(
   cOne.unwrap(),
   cUniverse.unwrap()
 )
+```
+
+## Sharing
+
+Sometimes It's preferable to work with a single object. State sharing will share the current state between all objects, imitating what a regular class would do.
+
+```javascript
+const fluente = require('fluente')
+
+function createCalculator (initialValue = 0) {
+  return fluente({
+    // Enable sharing
+    share: true,
+    state: {
+      value: initialValue
+    },
+    fluent: {
+      add (state, value) {
+        return {
+          value: state.value + value
+        }
+      }
+    },
+    methods: {
+      unwrap (state) {
+        return state.value
+      }
+    }
+  })
+}
+
+const calculator = createCalculator(42)
+
+if (Math.random() < 0.5) {
+  calculator.add(624)
+}
+
+// 42 or 666
+console.log(calculator.unwrap())
 ```
