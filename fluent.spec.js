@@ -162,3 +162,32 @@ test('steps validation', t => {
 
   t.is(result, 5)
 })
+
+test('sharing', t => {
+  const instance = fluente({
+    share: true,
+    state: {
+      value: 0
+    },
+    fluent: {
+      add (state, value) {
+        return {
+          value: state.value + value
+        }
+      }
+    },
+    methods: {
+      unwrap (state) {
+        return state.value
+      }
+    }
+  })
+
+  instance.add(1)
+  instance.add(1)
+  instance.add(1)
+  instance.add(1)
+  instance.add(1)
+
+  t.is(instance.unwrap(), 5)
+})

@@ -1,11 +1,13 @@
 'use strict'
 
+function set (object, path, value) {
+  object[path] = value
+  return object
+}
+
 function mapValues (object, iteratee) {
   return Object.keys(object).reduce(
-    (acc, key) => {
-      acc[key] = iteratee(object[key], key)
-      return acc
-    },
+    (acc, key) => set(acc, key, iteratee(object[key], key)),
     {}
   )
 }
@@ -30,6 +32,7 @@ function createState (options) {
     normalMethods: options.methods || {},
     constants: options.constants || {},
     historySize: options.historySize || 10,
+    isShareable: !!options.share,
     isBranchable: !!options.branch,
     isLocked: false,
     past: [],
@@ -48,13 +51,15 @@ function unwrapState (state) {
 }
 
 function updateState (state, context) {
-  return {
-    ...state,
+  const partial = {
     isLocked: false,
     past: takeRight([...state.past, state.present], state.historySize),
     present: context,
     future: []
   }
+  return state.isShareable
+    ? Object.assign(state, partial)
+    : Object.assign({}, state, partial)
 }
 
 function parseSteps (steps = 1) {

@@ -25,6 +25,7 @@ export interface Options<
   produce?: Producer<S>
   historySize?: number
   branch?: boolean
+  share?: boolean
 }
 
 export declare type OmitState<T, S> = T extends (state: S, ...args: infer A) => infer R
