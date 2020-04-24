@@ -145,6 +145,6 @@ function buildState (state) {
   )
 }
 
-module.exports = function fluente (options = {}) {
+module.exports = function fluente (options) {
   return buildState(createState(options))
 }
