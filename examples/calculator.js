@@ -67,5 +67,5 @@ const result = calculator
   .redo(1) // Redo 1 mutation: multiply(-1)
   .unwrap()
 
-  // Logs '2'
+// Logs '2'
 console.log(result)

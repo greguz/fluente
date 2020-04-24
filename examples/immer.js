@@ -1,4 +1,4 @@
-const fluente = require('/fluente')
+const fluente = require('fluente')
 const immer = require('immer')
 
 function createCalculator (initialValue = 0) {
