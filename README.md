@@ -243,7 +243,67 @@ function createCalculator (initialValue = 0) {
 }
 ```
 
-The easiest and safest way to support direct state manipulation is to use [Immer](https://www.npmjs.com/package/immer)'s `produce` function. [Immutable](https://www.npmjs.com/package/immutable) is also supported. There's an `examples` directory inside this repo.
+The easiest and safest way to support direct state manipulation is to use [Immer](https://www.npmjs.com/package/immer)'s `produce` function.
+
+```javascript
+const fluente = require('fluente')
+const immer = require('immer')
+
+function createCalculator (initialValue = 0) {
+  return fluente({
+    // Use Immer to handle state changes
+    produce: immer.produce,
+    state: {
+      value: initialValue
+    },
+    fluent: {
+      add (state, value) {
+        // Direct state manipulation
+        state.value += value
+      }
+    },
+    methods: {
+      unwrap (state) {
+        return state.value
+      }
+    },
+  })
+}
+```
+
+[Immutable.js](https://www.npmjs.com/package/immutable) is also supported.
+
+```javascript
+const fluente = require('fluente')
+const { Map } = require('immutable')
+
+function unwrap (state) {
+  return state.get('value')
+}
+
+function add (state, value) {
+  return state.set('value', unwrap(state) + value)
+}
+
+function createCalculator (initialValue = 0) {
+  return fluente({
+    // Direct mapping (fluent mappers need to return the updated state)
+    produce: (state, mapper) => mapper(state),
+    // Initial state (init with Immutable.js)
+    state: Map({
+      value: initialValue
+    }),
+    fluent: {
+      add
+    },
+    methods: {
+      unwrap
+    }
+  })
+}
+```
+
+There's an `examples` directory inside this repo.
 
 ## Undo and Redo
 
@@ -324,5 +384,4 @@ const myFirstCalculator = createClassyCalculator(0)
 const mySecondCalculator = myFirstCalculator.add(1)
 mySecondCalculator.add(1)
 console.log(myFirstCalculator.unwrap()) // Logs '2'
-console.log(myFirstCalculator === mySecondCalculator) // Logs 'false'
 ```
