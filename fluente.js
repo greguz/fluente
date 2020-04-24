@@ -18,6 +18,14 @@ function takeRight (array, n) {
     : array
 }
 
+function parseNumber (value, defaultValue) {
+  return value === undefined
+    ? defaultValue
+    : typeof value !== 'number' || isNaN(value) || value < 0
+    ? 0
+    : value
+}
+
 function defaultProducer (state, mapper) {
   return Object.assign(
     {},
@@ -31,7 +39,7 @@ function createState (options) {
     fluentMethods: options.fluent || {},
     normalMethods: options.methods || {},
     constants: options.constants || {},
-    historySize: options.historySize || 10,
+    historySize: parseNumber(options.historySize, 10),
     sharedState: !!options.sharedState,
     skipLocking: !!options.skipLocking,
     isLocked: false,
@@ -52,23 +60,16 @@ function unwrapState (state) {
 
 function assignState (state, partial) {
   return state.sharedState
-    ? Object.assign(state, partial)
-    : Object.assign({}, state, partial)
+    ? Object.assign(state, partial, { isLocked: false })
+    : Object.assign({}, state, partial, { isLocked: false })
 }
 
-function updateState (state, context) {
+function updateState (state, present) {
   return assignState(state, {
-    isLocked: false,
     past: takeRight([...state.past, state.present], state.historySize),
-    present: context,
+    present,
     future: []
   })
-}
-
-function parseSteps (steps = 1) {
-  return typeof steps !== 'number' || isNaN(steps) || steps < 0
-    ? 0
-    : steps
 }
 
 function undoState (state, steps) {
@@ -80,7 +81,6 @@ function undoState (state, steps) {
     present = past.pop()
   }
   return assignState(state, {
-    isLocked: false,
     past,
     present,
     future
@@ -127,20 +127,20 @@ function buildState (state) {
   return Object.assign(
     {
       undo: function undoMethod (steps) {
-        return buildState(undoState(state, parseSteps(steps)))
+        return buildState(undoState(state, parseNumber(steps, 1)))
       },
       redo: function redoMethod (steps) {
-        return buildState(redoState(state, parseSteps(steps)))
+        return buildState(redoState(state, parseNumber(steps, 1)))
       }
     },
     state.constants,
     mapValues(
       state.normalMethods,
-      method => bind(state, method)
+      fn => bind(state, fn)
     ),
     mapValues(
       state.fluentMethods,
-      method => fluentify(state, method)
+      fn => fluentify(state, fn)
     )
   )
 }
