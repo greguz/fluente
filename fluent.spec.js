@@ -202,4 +202,10 @@ test('sharing', t => {
   instance.redo(1)
 
   t.is(instance.unwrap(), 4)
+  t.throws(instance.unwrap)
+})
+
+test('defaults', t => {
+  fluente({})
+  t.pass()
 })
