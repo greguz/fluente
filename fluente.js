@@ -50,12 +50,21 @@ function createState (options) {
   }
 }
 
-function unwrapState (state) {
+function readState (state) {
   if (state.isLocked) {
     throw new Error('Locked')
   }
-  state.isLocked = !state.skipLocking
   return state.present
+}
+
+function lockState (state) {
+  state.isLocked = !state.skipLocking
+}
+
+function unwrapState (state) {
+  const result = readState(state)
+  lockState(state)
+  return result
 }
 
 function assignState (state, partial) {
@@ -105,21 +114,20 @@ function redoState (state, steps) {
 
 function fluentify (state, fn) {
   return function fluentMethod (...args) {
-    return buildState(
-      updateState(
-        state,
-        state.produce(
-          unwrapState(state),
-          context => fn(context, ...args)
-        )
-      )
+    const result = state.produce(
+      readState(state),
+      context => fn(context, ...args)
     )
+    lockState(state)
+    return buildState(updateState(state, result))
   }
 }
 
 function bind (state, fn) {
   return function normalMethod (...args) {
-    return fn(unwrapState(state), ...args)
+    const result = fn(readState(state), ...args)
+    lockState(state)
+    return result
   }
 }
 

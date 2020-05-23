@@ -209,3 +209,24 @@ test('defaults', t => {
   fluente({})
   t.pass()
 })
+
+test('stuck', t => {
+  const instance = fluente({
+    fluent: {
+      a () {
+        throw new Error('a-err')
+      }
+    },
+    methods: {
+      b () {
+        throw new Error('b-err')
+      }
+    }
+  })
+
+  t.throws(instance.a, { message: 'a-err' })
+  t.throws(instance.b, { message: 'b-err' })
+
+  t.throws(instance.a, { message: 'a-err' })
+  t.throws(instance.b, { message: 'b-err' })
+})
