@@ -112,7 +112,7 @@ function redoState (state, steps) {
   })
 }
 
-function fluentify (state, fn) {
+function fluentify (state, fn, key) {
   return Object.defineProperty(
     function (...args) {
       const result = state.produce(
@@ -123,11 +123,11 @@ function fluentify (state, fn) {
       return buildState(updateState(state, result))
     },
     'name',
-    { value: fn.name }
+    { value: key }
   )
 }
 
-function bind (state, fn) {
+function bind (state, fn, key) {
   return Object.defineProperty(
     function (...args) {
       const result = fn(readState(state), ...args)
@@ -135,7 +135,7 @@ function bind (state, fn) {
       return result
     },
     'name',
-    { value: fn.name }
+    { value: key }
   )
 }
 
@@ -152,11 +152,11 @@ function buildState (state) {
     state.constants,
     mapValues(
       state.normalMethods,
-      fn => bind(state, fn)
+      (fn, key) => bind(state, fn, key)
     ),
     mapValues(
       state.fluentMethods,
-      fn => fluentify(state, fn)
+      (fn, key) => fluentify(state, fn, key)
     )
   )
 }
