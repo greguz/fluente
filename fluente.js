@@ -113,31 +113,39 @@ function redoState (state, steps) {
 }
 
 function fluentify (state, fn) {
-  return function fluentMethod (...args) {
-    const result = state.produce(
-      readState(state),
-      context => fn(context, ...args)
-    )
-    lockState(state)
-    return buildState(updateState(state, result))
-  }
+  return Object.defineProperty(
+    function (...args) {
+      const result = state.produce(
+        readState(state),
+        context => fn(context, ...args)
+      )
+      lockState(state)
+      return buildState(updateState(state, result))
+    },
+    'name',
+    { value: fn.name }
+  )
 }
 
 function bind (state, fn) {
-  return function normalMethod (...args) {
-    const result = fn(readState(state), ...args)
-    lockState(state)
-    return result
-  }
+  return Object.defineProperty(
+    function (...args) {
+      const result = fn(readState(state), ...args)
+      lockState(state)
+      return result
+    },
+    'name',
+    { value: fn.name }
+  )
 }
 
 function buildState (state) {
   return Object.assign(
     {
-      undo: function undoMethod (steps) {
+      undo (steps) {
         return buildState(undoState(state, parseNumber(steps, 1)))
       },
-      redo: function redoMethod (steps) {
+      redo (steps) {
         return buildState(redoState(state, parseNumber(steps, 1)))
       }
     },
