@@ -50,7 +50,7 @@ function createState (options) {
   }
 }
 
-function readState (state) {
+function readContext (state) {
   if (state.isLocked) {
     throw new Error('Locked')
   }
@@ -62,9 +62,9 @@ function lockState (state) {
 }
 
 function unwrapState (state) {
-  const result = readState(state)
+  const ctx = readContext(state)
   lockState(state)
-  return result
+  return ctx
 }
 
 function assignState (state, partial) {
@@ -105,7 +105,6 @@ function redoState (state, steps) {
     present = future.pop()
   }
   return assignState(state, {
-    isLocked: false,
     past,
     present,
     future
@@ -115,24 +114,24 @@ function redoState (state, steps) {
 function fluentify (state, fn, key) {
   return Object.defineProperty(
     function (...args) {
-      const result = state.produce(
-        readState(state),
-        context => fn(context, ...args)
+      const out = state.produce(
+        readContext(state),
+        context => fn.call(null, context, ...args)
       )
       lockState(state)
-      return buildState(updateState(state, result))
+      return buildState(updateState(state, out))
     },
     'name',
     { value: key }
   )
 }
 
-function bind (state, fn, key) {
+function methodify (state, fn, key) {
   return Object.defineProperty(
     function (...args) {
-      const result = fn(readState(state), ...args)
+      const out = fn.call(null, readContext(state), ...args)
       lockState(state)
-      return result
+      return out
     },
     'name',
     { value: key }
@@ -152,7 +151,7 @@ function buildState (state) {
     state.constants,
     mapValues(
       state.normalMethods,
-      (fn, key) => bind(state, fn, key)
+      (fn, key) => methodify(state, fn, key)
     ),
     mapValues(
       state.fluentMethods,
