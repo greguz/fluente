@@ -9,8 +9,7 @@ Make fluent API like a boss!
 
 ## Core features
 
-- **Zero dependencies**: small footprint.
-- **Protected state**: no more poisoning.
+- **Protected state**
 - **Undo/Redo out of the box**
 - **State locking**: by default enforces single state access.
 - **State sharing**: optionally emulates traditional `class` behavior.
@@ -321,7 +320,12 @@ Any time a state is accessed, Fluente locks the object that acted. This way ensu
 const cZero = createCalculator(0) // cZero is unlocked
 const cOne = cZero.add(1) // Now cZero is locked, and cOne is unlocked
 const result = cOne.unwrap() // Now both cZero and cOne are locked
-const cTwo = cOne.add(1) // Will throw a 'Locked' error
+try {
+  cOne.add(1) // Will throw
+} catch (err) {
+  console.log(err.message) // Logs 'Locked'
+  console.log(err.code) // Logs 'FLUENTE_LOCKED'
+}
 ```
 
 Setting the `skipLocking` option to `true` disables this check, permitting multiple usages of the same object at any time.

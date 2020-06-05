@@ -1,5 +1,7 @@
 'use strict'
 
+const Herry = require('herry')
+
 function set (object, path, value) {
   object[path] = value
   return object
@@ -52,7 +54,7 @@ function createState (options) {
 
 function readContext (state) {
   if (state.isLocked) {
-    throw new Error('Locked')
+    throw new Herry('FLUENTE_LOCKED', 'Locked')
   }
   return state.present
 }

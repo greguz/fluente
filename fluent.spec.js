@@ -74,10 +74,10 @@ test('locking', t => {
     }
   })
   instance.b()
-  t.throws(instance.a)
-  t.throws(instance.b)
-  t.throws(instance.undo)
-  t.throws(instance.redo)
+  t.throws(instance.a, { code: 'FLUENTE_LOCKED' })
+  t.throws(instance.b, { code: 'FLUENTE_LOCKED' })
+  t.throws(instance.undo, { code: 'FLUENTE_LOCKED' })
+  t.throws(instance.redo, { code: 'FLUENTE_LOCKED' })
 })
 
 test('immer', t => {
