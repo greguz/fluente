@@ -11,8 +11,9 @@ Make fluent API like a boss!
 
 - **Protected state**
 - **Undo/Redo out of the box**
-- **State locking**: by default enforces single state access.
-- **State sharing**: optionally emulates traditional `class` behavior.
+- **State locking**: enforce single state access.
+- **Selective mutability**: choose between immutable objects or a classy object.
+- **Hard binding**: call any method without worrying about context.
 - **TypeScript support**
 
 ## Installation
@@ -108,7 +109,8 @@ The whole library consists of just one function. Everything is optional.
   - `produce` `<Function>` See [state manipulation](#state-manipulation).
   - `historySize` `<Number>` See [undo and redo](#undo-and-redo).
   - `skipLocking` `<Boolean>` See [locking](#locking).
-  - `sharedState` `<Boolean>` See [state sharing](#state-sharing).
+  - `isMutable` `<Boolean>` See [mutability](#mutability).
+  - `hardBinding` `<Boolean>` See [hard binding](#hard-binding).
 - Returns: `<Object>`
 
 ## State mappers
@@ -314,7 +316,7 @@ The `historySize` option controls the max number of mutations remembered by Flue
 
 ## Locking
 
-Any time a state is accessed, Fluente locks the object that acted. This way ensures that only the last version of the state is usable. Plus, inside the state may be present something not usable twice.
+Any time a state is accessed, Fluente locks the object that acted. This way ensures that only the last version of the state is usable. This is because inside the state may be present something not usable twice.
 
 ```javascript
 const cZero = createCalculator(0) // cZero is unlocked
@@ -360,15 +362,15 @@ console.log(
 )
 ```
 
-## State sharing
+## Mutability
 
-Share the state means that all objects are always working with the last version of the state, emulating traditional class behavior.
+By default, calling a fluent method will return a **new** object containing the updated state. Enabling `isMutable` option will cause the fluent methods to return the same object with the internal state updated, emulating the traditional `class` behavior.
 
 ```javascript
-function createClassyCalculator (initialValue = 0) {
+function createMutableCalculator (initialValue = 0) {
   return fluente({
-    // Enable state sharing
-    sharedState: true,
+    // Enable mutable mode
+    isMutable: true,
     state: {
       value: initialValue
     },
@@ -384,8 +386,56 @@ function createClassyCalculator (initialValue = 0) {
   })
 }
 
-const myFirstCalculator = createClassyCalculator(0)
-const mySecondCalculator = myFirstCalculator.add(1)
-mySecondCalculator.add(1)
-console.log(myFirstCalculator.unwrap()) // Logs '2'
+const calculator = createMutableCalculator(0)
+calculator.add(2)
+calculator
+  .add(4)
+  .add(8)
+console.log(calculator.unwrap()) // Logs '14'
+```
+
+## Hard binding
+
+Calling a Fluente generated method outside its context (object) will result in an error throw. Enabling the hard binding will secure any method to its correct context.
+
+```javascript
+function createBoundCalculator (initialValue = 0) {
+  return fluente({
+    // Enable hard binding
+    hardBinding: true,
+    state: {
+      value: initialValue
+    },
+    fluent: {
+      add,
+      subtract,
+      multiply,
+      divide
+    },
+    methods: {
+      unwrap
+    }
+  })
+}
+
+const calculator = createBoundCalculator(0)
+  .add.call(null, 10)
+  .add.call(null, 12)
+  .add.call(null, 22)
+  .subtract.call(null, 2)
+
+console.log(calculator.unwrap()) // Logs '42'
+```
+
+By default, Fluente still protects the coder from an erroneous unbound call, by throwing a particular error.
+
+```javascript
+const calculator = createNormalCalculator(0)
+
+try {
+  calculator.add.call(null, 1)
+} catch (err) {
+  console.log(err.message) // Logs 'Unbound call'
+  console.log(err.code) // Logs 'FLUENTE_UNBOUND'
+}
 ```
