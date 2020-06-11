@@ -254,8 +254,14 @@ test('binding', t => {
       unwrap
     }
   })
-  a = a.next.call(null)
-  t.is(a.unwrap.call(null), 1)
+  t.throws(
+    () => a.next.call(null),
+    { code: 'FLUENTE_UNBOUND' }
+  )
+  t.throws(
+    () => a.unwrap.call(null),
+    { code: 'FLUENTE_UNBOUND' }
+  )
 
   let b = fluente({
     hardBinding: true,

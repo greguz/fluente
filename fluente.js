@@ -209,7 +209,7 @@ module.exports = function fluente (options) {
     historySize: parseNumber(options.historySize, 10),
     isMutable: options.isMutable === true,
     skipLocking: options.skipLocking === true,
-    hardBinding: options.hardBinding !== false,
+    hardBinding: options.hardBinding === true,
     isLocked: false,
     past: [],
     present: options.state || {},
