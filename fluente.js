@@ -18,7 +18,7 @@ function set (obj, path, value) {
 }
 
 function mapValues (obj, iteratee) {
-  return Object.keys(obj).reduce(
+  return Object.getOwnPropertySymbols(obj).concat(Object.keys(obj)).reduce(
     (acc, key) => set(acc, key, iteratee(obj[key], key)),
     {}
   )
