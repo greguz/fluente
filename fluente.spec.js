@@ -9,6 +9,8 @@ function noop () {
 }
 
 test('interface', t => {
+  const sym = Symbol('test')
+
   const instance = fluente({
     fluent: {
       a: noop
@@ -17,7 +19,8 @@ test('interface', t => {
       b: noop
     },
     constants: {
-      c: 42
+      c: 42,
+      [sym]: true
     }
   })
 
@@ -26,6 +29,7 @@ test('interface', t => {
   t.true(typeof instance.a === 'function')
   t.true(typeof instance.b === 'function')
   t.is(instance.c, 42)
+  t.true(instance[sym])
 })
 
 test('lifecycle', t => {
@@ -232,6 +236,13 @@ test('stuck', t => {
 })
 
 test('binding', t => {
+  const sym = Symbol('test')
+
+  const constants = {
+    test: true,
+    [sym]: true
+  }
+
   function next (state) {
     return {
       value: state.value + 1
@@ -244,6 +255,7 @@ test('binding', t => {
 
   let a = fluente({
     // hardBinding: undefined,
+    constants,
     state: {
       value: 0
     },
@@ -254,6 +266,8 @@ test('binding', t => {
       unwrap
     }
   })
+  t.true(a.test)
+  t.true(a[sym])
   t.throws(
     () => a.next.call(null),
     { code: 'FLUENTE_UNBOUND' }
@@ -265,6 +279,7 @@ test('binding', t => {
 
   let b = fluente({
     hardBinding: true,
+    constants,
     state: {
       value: 1
     },
@@ -275,11 +290,14 @@ test('binding', t => {
       unwrap
     }
   })
+  t.true(b.test)
+  t.true(b[sym])
   b = b.next.call(null)
   t.is(b.unwrap.call(null), 2)
 
   const c = fluente({
     hardBinding: false,
+    constants,
     state: {
       value: 2
     },
@@ -290,6 +308,8 @@ test('binding', t => {
       unwrap
     }
   })
+  t.true(c.test)
+  t.true(c[sym])
   t.throws(
     () => c.next.call(null),
     { code: 'FLUENTE_UNBOUND' }
