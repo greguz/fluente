@@ -5,7 +5,7 @@
 [![Build Status](https://travis-ci.com/greguz/fluente.svg?branch=master)](https://travis-ci.com/greguz/fluente)
 [![Coverage Status](https://coveralls.io/repos/github/greguz/fluente/badge.svg?branch=master)](https://coveralls.io/github/greguz/fluente?branch=master)
 
-Make fluent API like a boss!
+Make fluent objects like a boss!
 
 ## Core features
 
