@@ -25,7 +25,7 @@ export interface Options<
   produce?: Producer<S>
   historySize?: number
   skipLocking?: boolean
-  sharedState?: boolean
+  isMutable?: boolean
   hardBinding?: boolean
 }
 

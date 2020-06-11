@@ -173,9 +173,9 @@ test('steps validation', t => {
   t.is(result, 5)
 })
 
-test('sharing', t => {
+test('mutable', t => {
   const instance = fluente({
-    sharedState: true,
+    isMutable: true,
     state: {
       value: 0
     },

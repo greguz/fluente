@@ -114,7 +114,7 @@ function createObject (state) {
   const obj = {}
   Object.defineProperty(obj, stateSymbol, {
     value: state,
-    writable: state.sharedState === true
+    writable: state.isMutable === true
   })
   Object.defineProperties(
     obj,
@@ -126,7 +126,7 @@ function createObject (state) {
 }
 
 function updateObject (obj, state) {
-  if (state.sharedState === true) {
+  if (state.isMutable === true) {
     obj[stateSymbol] = state
     return obj
   } else {
@@ -207,8 +207,8 @@ function createDescriptors (constants, normalMethods, fluentMethods) {
 module.exports = function fluente (options) {
   return createObject({
     historySize: parseNumber(options.historySize, 10),
-    sharedState: !!options.sharedState,
-    skipLocking: !!options.skipLocking,
+    isMutable: options.isMutable === true,
+    skipLocking: options.skipLocking === true,
     hardBinding: options.hardBinding !== false,
     isLocked: false,
     past: [],
