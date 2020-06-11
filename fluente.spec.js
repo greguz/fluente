@@ -230,3 +230,66 @@ test('stuck', t => {
   t.throws(() => instance.a(), { message: 'a-err' })
   t.throws(() => instance.b(), { message: 'b-err' })
 })
+
+test('binding', t => {
+  function next (state) {
+    return {
+      value: state.value + 1
+    }
+  }
+
+  function unwrap (state) {
+    return state.value
+  }
+
+  let a = fluente({
+    // hardBinding: undefined,
+    state: {
+      value: 0
+    },
+    fluent: {
+      next
+    },
+    methods: {
+      unwrap
+    }
+  })
+  a = a.next.call(null)
+  t.is(a.unwrap.call(null), 1)
+
+  let b = fluente({
+    hardBinding: true,
+    state: {
+      value: 1
+    },
+    fluent: {
+      next
+    },
+    methods: {
+      unwrap
+    }
+  })
+  b = b.next.call(null)
+  t.is(b.unwrap.call(null), 2)
+
+  const c = fluente({
+    hardBinding: false,
+    state: {
+      value: 2
+    },
+    fluent: {
+      next
+    },
+    methods: {
+      unwrap
+    }
+  })
+  t.throws(
+    () => c.next.call(null),
+    { code: 'FLUENTE_UNBOUND' }
+  )
+  t.throws(
+    () => c.unwrap.call(null),
+    { code: 'FLUENTE_UNBOUND' }
+  )
+})

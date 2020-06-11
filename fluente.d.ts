@@ -26,6 +26,7 @@ export interface Options<
   historySize?: number
   skipLocking?: boolean
   sharedState?: boolean
+  hardBinding?: boolean
 }
 
 export declare type OmitState<T, S> = T extends (state: S, ...args: infer A) => infer R

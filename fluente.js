@@ -4,6 +4,18 @@ const Herry = require('herry')
 
 const stateSymbol = Symbol('fluente')
 
+function getState (obj) {
+  if (typeof obj === 'object' && obj !== null && obj.hasOwnProperty(stateSymbol)) {
+    return obj[stateSymbol]
+  } else {
+    throw new Herry('FLUENTE_UNBOUND', 'Unbound call')
+  }
+}
+
+function setState (obj, state) {
+  Object.defineProperty(obj, stateSymbol, { value: state })
+}
+
 function set (object, path, value) {
   object[path] = value
   return object
@@ -99,17 +111,31 @@ function redoState (state, steps) {
   })
 }
 
+function bindDescriptors (descriptors, obj) {
+  return mapValues(descriptors, descriptor => ({
+    ...descriptor,
+    value: typeof descriptor.value === 'function'
+      ? descriptor.value.bind(obj)
+      : descriptor.value
+  }))
+}
+
 function build (state) {
   const obj = {}
-  Object.defineProperty(obj, stateSymbol, { value: state })
-  Object.defineProperties(obj, state.descriptors)
+  setState(obj, state)
+  Object.defineProperties(
+    obj,
+    state.hardBinding === true
+      ? bindDescriptors(state.descriptors, obj)
+      : state.descriptors
+  )
   return obj
 }
 
 function fluentify (fn, key) {
   return Object.defineProperty(
     function (...args) {
-      const state = this[stateSymbol]
+      const state = getState(this)
       const out = state.produce(
         readContext(state),
         context => fn.call(null, context, ...args)
@@ -125,7 +151,7 @@ function fluentify (fn, key) {
 function methodify (fn, key) {
   return Object.defineProperty(
     function (...args) {
-      const state = this[stateSymbol]
+      const state = getState(this)
       const out = fn.call(null, readContext(state), ...args)
       lockState(state)
       return out
@@ -136,11 +162,11 @@ function methodify (fn, key) {
 }
 
 function undo (steps) {
-  return build(undoState(this[stateSymbol], parseNumber(steps, 1)))
+  return build(undoState(getState(this), parseNumber(steps, 1)))
 }
 
 function redo (steps) {
-  return build(redoState(this[stateSymbol], parseNumber(steps, 1)))
+  return build(redoState(getState(this), parseNumber(steps, 1)))
 }
 
 function createDescriptors (constants, normalMethods, fluentMethods) {
@@ -181,6 +207,7 @@ module.exports = function fluente (options) {
     historySize: parseNumber(options.historySize, 10),
     sharedState: !!options.sharedState,
     skipLocking: !!options.skipLocking,
+    hardBinding: options.hardBinding !== false,
     isLocked: false,
     past: [],
     present: options.state || {},
