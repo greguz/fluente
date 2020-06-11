@@ -71,29 +71,18 @@ function updateState (state, present) {
   })
 }
 
-function undoState (state, steps) {
+function moveState (state, steps, forward) {
   const past = state.past.slice()
   let present = unwrapState(state)
   const future = state.future.slice()
-  for (let i = 0; i < steps && past.length > 0; i++) {
-    future.push(present)
-    present = past.pop()
-  }
-  return assignState(state, {
-    past,
-    present,
-    future
-  })
-}
 
-function redoState (state, steps) {
-  const past = state.past.slice()
-  let present = unwrapState(state)
-  const future = state.future.slice()
-  for (let i = 0; i < steps && future.length > 0; i++) {
-    past.push(present)
-    present = future.pop()
+  const source = forward ? future : past
+  const target = forward ? past : future
+  for (let i = 0; i < steps && source.length > 0; i++) {
+    target.push(present)
+    present = source.pop()
   }
+
   return assignState(state, {
     past,
     present,
@@ -164,11 +153,17 @@ function methodify (fn, key) {
 }
 
 function undo (steps) {
-  return updateObject(this, undoState(getState(this), parseNumber(steps, 1)))
+  return updateObject(
+    this,
+    moveState(getState(this), parseNumber(steps, 1), false)
+  )
 }
 
 function redo (steps) {
-  return updateObject(this, redoState(getState(this), parseNumber(steps, 1)))
+  return updateObject(
+    this,
+    moveState(getState(this), parseNumber(steps, 1), true)
+  )
 }
 
 function createDescriptors (constants, normalMethods, fluentMethods) {
