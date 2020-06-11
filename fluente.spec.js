@@ -193,13 +193,13 @@ test('sharing', t => {
     }
   })
 
-  instance.add(1)
-  instance.add(1)
-  instance.add(1)
-  instance.add(1)
-  instance.add(1)
-  instance.undo(2)
-  instance.redo(1)
+  t.true(instance === instance.add(1))
+  t.true(instance === instance.add(1))
+  t.true(instance === instance.add(1))
+  t.true(instance === instance.add(1))
+  t.true(instance === instance.add(1))
+  t.true(instance === instance.undo(2))
+  t.true(instance === instance.redo(1))
 
   t.is(instance.unwrap(), 4)
   t.throws(instance.unwrap)

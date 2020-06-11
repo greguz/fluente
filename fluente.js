@@ -12,18 +12,14 @@ function getState (obj) {
   }
 }
 
-function setState (obj, state) {
-  Object.defineProperty(obj, stateSymbol, { value: state })
+function set (obj, path, value) {
+  obj[path] = value
+  return obj
 }
 
-function set (object, path, value) {
-  object[path] = value
-  return object
-}
-
-function mapValues (object, iteratee) {
-  return Object.keys(object).reduce(
-    (acc, key) => set(acc, key, iteratee(object[key], key)),
+function mapValues (obj, iteratee) {
+  return Object.keys(obj).reduce(
+    (acc, key) => set(acc, key, iteratee(obj[key], key)),
     {}
   )
 }
@@ -43,11 +39,7 @@ function parseNumber (value, defaultValue) {
 }
 
 function defaultProducer (state, mapper) {
-  return Object.assign(
-    {},
-    state,
-    mapper(state)
-  )
+  return Object.assign({}, state, mapper(state))
 }
 
 function readContext (state) {
@@ -68,9 +60,7 @@ function unwrapState (state) {
 }
 
 function assignState (state, partial) {
-  return state.sharedState
-    ? Object.assign(state, partial, { isLocked: false })
-    : Object.assign({}, state, partial, { isLocked: false })
+  return Object.assign({}, state, partial, { isLocked: false })
 }
 
 function updateState (state, present) {
@@ -120,9 +110,12 @@ function bindDescriptors (descriptors, obj) {
   }))
 }
 
-function build (state) {
+function createObject (state) {
   const obj = {}
-  setState(obj, state)
+  Object.defineProperty(obj, stateSymbol, {
+    value: state,
+    writable: state.sharedState === true
+  })
   Object.defineProperties(
     obj,
     state.hardBinding === true
@@ -130,6 +123,15 @@ function build (state) {
       : state.descriptors
   )
   return obj
+}
+
+function updateObject (obj, state) {
+  if (state.sharedState === true) {
+    obj[stateSymbol] = state
+    return obj
+  } else {
+    return createObject(state)
+  }
 }
 
 function fluentify (fn, key) {
@@ -141,7 +143,7 @@ function fluentify (fn, key) {
         context => fn.call(null, context, ...args)
       )
       lockState(state)
-      return build(updateState(state, out))
+      return updateObject(this, updateState(state, out))
     },
     'name',
     { value: key }
@@ -162,11 +164,11 @@ function methodify (fn, key) {
 }
 
 function undo (steps) {
-  return build(undoState(getState(this), parseNumber(steps, 1)))
+  return updateObject(this, undoState(getState(this), parseNumber(steps, 1)))
 }
 
 function redo (steps) {
-  return build(redoState(getState(this), parseNumber(steps, 1)))
+  return updateObject(this, redoState(getState(this), parseNumber(steps, 1)))
 }
 
 function createDescriptors (constants, normalMethods, fluentMethods) {
@@ -203,7 +205,7 @@ function createDescriptors (constants, normalMethods, fluentMethods) {
 }
 
 module.exports = function fluente (options) {
-  return build({
+  return createObject({
     historySize: parseNumber(options.historySize, 10),
     sharedState: !!options.sharedState,
     skipLocking: !!options.skipLocking,
