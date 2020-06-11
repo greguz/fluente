@@ -2,6 +2,8 @@
 
 const Herry = require('herry')
 
+const stateSymbol = Symbol('fluente')
+
 function set (object, path, value) {
   object[path] = value
   return object
@@ -34,22 +36,6 @@ function defaultProducer (state, mapper) {
     state,
     mapper(state)
   )
-}
-
-function createState (options) {
-  return {
-    fluentMethods: options.fluent || {},
-    normalMethods: options.methods || {},
-    constants: options.constants || {},
-    historySize: parseNumber(options.historySize, 10),
-    sharedState: !!options.sharedState,
-    skipLocking: !!options.skipLocking,
-    isLocked: false,
-    past: [],
-    present: options.state || {},
-    future: [],
-    produce: options.produce || defaultProducer
-  }
 }
 
 function readContext (state) {
@@ -113,24 +99,33 @@ function redoState (state, steps) {
   })
 }
 
-function fluentify (state, fn, key) {
+function build (state) {
+  const obj = {}
+  Object.defineProperty(obj, stateSymbol, { value: state })
+  Object.defineProperties(obj, state.descriptors)
+  return obj
+}
+
+function fluentify (fn, key) {
   return Object.defineProperty(
     function (...args) {
+      const state = this[stateSymbol]
       const out = state.produce(
         readContext(state),
         context => fn.call(null, context, ...args)
       )
       lockState(state)
-      return buildState(updateState(state, out))
+      return build(updateState(state, out))
     },
     'name',
     { value: key }
   )
 }
 
-function methodify (state, fn, key) {
+function methodify (fn, key) {
   return Object.defineProperty(
     function (...args) {
+      const state = this[stateSymbol]
       const out = fn.call(null, readContext(state), ...args)
       lockState(state)
       return out
@@ -140,28 +135,61 @@ function methodify (state, fn, key) {
   )
 }
 
-function buildState (state) {
+function undo (steps) {
+  return build(undoState(this[stateSymbol], parseNumber(steps, 1)))
+}
+
+function redo (steps) {
+  return build(redoState(this[stateSymbol], parseNumber(steps, 1)))
+}
+
+function createDescriptors (constants, normalMethods, fluentMethods) {
   return Object.assign(
     {
-      undo (steps) {
-        return buildState(undoState(state, parseNumber(steps, 1)))
+      undo: {
+        configurable: true,
+        value: undo,
+        writable: true
       },
-      redo (steps) {
-        return buildState(redoState(state, parseNumber(steps, 1)))
+      redo: {
+        configurable: true,
+        value: redo,
+        writable: true
       }
     },
-    state.constants,
-    mapValues(
-      state.normalMethods,
-      (fn, key) => methodify(state, fn, key)
-    ),
-    mapValues(
-      state.fluentMethods,
-      (fn, key) => fluentify(state, fn, key)
-    )
+    mapValues(constants, value => ({
+      configurable: true,
+      enumerable: true,
+      value,
+      writable: true
+    })),
+    mapValues(normalMethods, (fn, key) => ({
+      configurable: true,
+      value: methodify(fn, key),
+      writable: true
+    })),
+    mapValues(fluentMethods, (fn, key) => ({
+      configurable: true,
+      value: fluentify(fn, key),
+      writable: true
+    }))
   )
 }
 
 module.exports = function fluente (options) {
-  return buildState(createState(options))
+  return build({
+    historySize: parseNumber(options.historySize, 10),
+    sharedState: !!options.sharedState,
+    skipLocking: !!options.skipLocking,
+    isLocked: false,
+    past: [],
+    present: options.state || {},
+    future: [],
+    produce: options.produce || defaultProducer,
+    descriptors: createDescriptors(
+      options.constants || {},
+      options.methods || {},
+      options.fluent || {}
+    )
+  })
 }

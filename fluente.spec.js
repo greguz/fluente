@@ -74,10 +74,10 @@ test('locking', t => {
     }
   })
   instance.b()
-  t.throws(instance.a, { code: 'FLUENTE_LOCKED' })
-  t.throws(instance.b, { code: 'FLUENTE_LOCKED' })
-  t.throws(instance.undo, { code: 'FLUENTE_LOCKED' })
-  t.throws(instance.redo, { code: 'FLUENTE_LOCKED' })
+  t.throws(() => instance.a(), { code: 'FLUENTE_LOCKED' })
+  t.throws(() => instance.b(), { code: 'FLUENTE_LOCKED' })
+  t.throws(() => instance.undo(), { code: 'FLUENTE_LOCKED' })
+  t.throws(() => instance.redo(), { code: 'FLUENTE_LOCKED' })
 })
 
 test('immer', t => {
@@ -224,9 +224,9 @@ test('stuck', t => {
     }
   })
 
-  t.throws(instance.a, { message: 'a-err' })
-  t.throws(instance.b, { message: 'b-err' })
+  t.throws(() => instance.a(), { message: 'a-err' })
+  t.throws(() => instance.b(), { message: 'b-err' })
 
-  t.throws(instance.a, { message: 'a-err' })
-  t.throws(instance.b, { message: 'b-err' })
+  t.throws(() => instance.a(), { message: 'a-err' })
+  t.throws(() => instance.b(), { message: 'b-err' })
 })
