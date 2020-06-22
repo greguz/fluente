@@ -53,12 +53,6 @@ function lockState (state) {
   state.isLocked = !state.skipLocking
 }
 
-function unwrapState (state) {
-  const ctx = readContext(state)
-  lockState(state)
-  return ctx
-}
-
 function assignState (state, partial) {
   return Object.assign({}, state, partial, { isLocked: false })
 }
@@ -73,8 +67,10 @@ function updateState (state, present) {
 
 function moveState (state, steps, forward) {
   const past = state.past.slice()
-  let present = unwrapState(state)
+  let present = readContext(state)
   const future = state.future.slice()
+
+  lockState(state)
 
   const source = forward ? future : past
   const target = forward ? past : future
