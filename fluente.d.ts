@@ -24,7 +24,6 @@ export interface Options<
   constants?: C
   produce?: Producer<S>
   historySize?: number
-  skipLocking?: boolean
   isMutable?: boolean
   hardBinding?: boolean
 }

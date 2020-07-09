@@ -43,18 +43,11 @@ function defaultProducer (state, mapper) {
 }
 
 function readContext (state) {
-  if (state.isLocked) {
-    throw new Herry('FLUENTE_LOCKED', 'Locked')
-  }
   return state.present
 }
 
-function lockState (state) {
-  state.isLocked = !state.skipLocking
-}
-
 function assignState (state, partial) {
-  return Object.assign({}, state, partial, { isLocked: false })
+  return Object.assign({}, state, partial)
 }
 
 function updateState (state, present) {
@@ -69,8 +62,6 @@ function moveState (state, steps, forward) {
   const past = state.past.slice()
   let present = readContext(state)
   const future = state.future.slice()
-
-  lockState(state)
 
   const source = forward ? future : past
   const target = forward ? past : future
@@ -127,7 +118,6 @@ function fluentify (fn, key) {
         readContext(state),
         context => fn.call(null, context, ...args)
       )
-      lockState(state)
       return updateObject(this, updateState(state, out))
     },
     'name',
@@ -138,10 +128,7 @@ function fluentify (fn, key) {
 function methodify (fn, key) {
   return Object.defineProperty(
     function (...args) {
-      const state = getState(this)
-      const out = fn.call(null, readContext(state), ...args)
-      lockState(state)
-      return out
+      return fn.call(null, readContext(getState(this)), ...args)
     },
     'name',
     { value: key }
@@ -199,9 +186,7 @@ module.exports = function fluente (options) {
   return createObject({
     historySize: parseNumber(options.historySize, 10),
     isMutable: options.isMutable === true,
-    skipLocking: options.skipLocking === true,
     hardBinding: options.hardBinding === true,
-    isLocked: false,
     past: [],
     present: options.state || {},
     future: [],

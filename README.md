@@ -11,7 +11,6 @@ Make fluent objects like a boss!
 
 - **Protected state**
 - **Undo/Redo out of the box**
-- **State locking**: enforce single state access.
 - **Selective mutability**: choose between immutable objects or a classy object.
 - **Hard binding**: call any method without worrying about context.
 - **TypeScript support**
@@ -108,7 +107,6 @@ The whole library consists of just one function. Everything is optional.
   - `constants` `<Object>`
   - `produce` `<Function>` See [state manipulation](#state-manipulation).
   - `historySize` `<Number>` See [undo and redo](#undo-and-redo).
-  - `skipLocking` `<Boolean>` See [locking](#locking).
   - `isMutable` `<Boolean>` See [mutability](#mutability).
   - `hardBinding` `<Boolean>` See [hard binding](#hard-binding).
 - Returns: `<Object>`
@@ -313,54 +311,6 @@ An isolated state enables easy undo-redo implementation. The current state repre
 Fluente automatically injects undo-redo functions. Both functions optionally accept the number of mutations to apply, defaulting to `1` mutation. `Infinity` is accepted, and means "redo/undo all the mutations available".
 
 The `historySize` option controls the max number of mutations remembered by Fluente. It's set to `10` by default, to limit memory usage.
-
-## Locking
-
-Any time a state is accessed, Fluente locks the object that acted. This way ensures that only the last version of the state is usable. This is because inside the state may be present something not usable twice.
-
-```javascript
-const cZero = createCalculator(0) // cZero is unlocked
-const cOne = cZero.add(1) // Now cZero is locked, and cOne is unlocked
-const result = cOne.unwrap() // Now both cZero and cOne are locked
-try {
-  cOne.add(1) // Will throw
-} catch (err) {
-  console.log(err.message) // Logs 'Locked'
-  console.log(err.code) // Logs 'FLUENTE_LOCKED'
-}
-```
-
-Setting the `skipLocking` option to `true` disables this check, permitting multiple usages of the same object at any time.
-
-```javascript
-function createUnlockedCalculator (initialValue = 0) {
-  return fluente({
-    // Disable locking
-    skipLocking: true,
-    state: {
-      value: initialValue
-    },
-    fluent: {
-      add,
-      subtract,
-      multiply,
-      divide
-    },
-    methods: {
-      unwrap
-    }
-  })
-}
-
-const cZero = createUnlockedCalculator(0)
-const cOne = cZero.add(1)
-const cTwo = cZero.add(2)
-console.log(
-  cZero.unwrap(),
-  cOne.unwrap(),
-  cTwo.unwrap()
-)
-```
 
 ## Mutability
 

@@ -68,27 +68,10 @@ test('lifecycle', t => {
   t.is(result, 3)
 })
 
-test('locking', t => {
-  const instance = fluente({
-    fluent: {
-      a: noop
-    },
-    methods: {
-      b: noop
-    }
-  })
-  instance.b()
-  t.throws(() => instance.a(), { code: 'FLUENTE_LOCKED' })
-  t.throws(() => instance.b(), { code: 'FLUENTE_LOCKED' })
-  t.throws(() => instance.undo(), { code: 'FLUENTE_LOCKED' })
-  t.throws(() => instance.redo(), { code: 'FLUENTE_LOCKED' })
-})
-
 test('immer', t => {
   t.plan(6)
 
   const instance = fluente({
-    skipLocking: true,
     produce: immer.produce,
     state: {
       value: 0
@@ -115,7 +98,6 @@ test('immutable', t => {
   t.plan(6)
 
   const instance = fluente({
-    skipLocking: true,
     produce: (state, mapper) => mapper(state),
     state: immutable.Map({
       value: 0
