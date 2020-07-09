@@ -1,14 +1,12 @@
 'use strict'
 
-const Herry = require('herry')
-
 const stateSymbol = Symbol('fluente')
 
 function getState (obj) {
   if (typeof obj === 'object' && obj !== null && obj.hasOwnProperty(stateSymbol)) {
     return obj[stateSymbol]
   } else {
-    throw new Herry('FLUENTE_UNBOUND', 'Unbound call')
+    throw new Error('Unbound call')
   }
 }
 

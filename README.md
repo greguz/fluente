@@ -9,6 +9,7 @@ Make fluent objects like a boss!
 
 ## Core features
 
+- **Zero dependencies**: small footprint.
 - **Protected state**
 - **Undo/Redo out of the box**
 - **Selective mutability**: choose between immutable objects or a classy object.
@@ -377,7 +378,7 @@ const calculator = createBoundCalculator(0)
 console.log(calculator.unwrap()) // Logs '42'
 ```
 
-By default, Fluente still protects the coder from an erroneous unbound call, by throwing a particular error.
+By default, Fluente will throw an 'Unbound call' error when necessary.
 
 ```javascript
 const calculator = createNormalCalculator(0)
@@ -385,7 +386,6 @@ const calculator = createNormalCalculator(0)
 try {
   calculator.add.call(null, 1)
 } catch (err) {
-  console.log(err.message) // Logs 'Unbound call'
-  console.log(err.code) // Logs 'FLUENTE_UNBOUND'
+  console.log(err) // Error: Unbound call
 }
 ```

@@ -252,11 +252,11 @@ test('binding', t => {
   t.true(a[sym])
   t.throws(
     () => a.next.call(null),
-    { code: 'FLUENTE_UNBOUND' }
+    { message: 'Unbound call' }
   )
   t.throws(
     () => a.unwrap.call(null),
-    { code: 'FLUENTE_UNBOUND' }
+    { message: 'Unbound call' }
   )
 
   let b = fluente({
@@ -294,10 +294,10 @@ test('binding', t => {
   t.true(c[sym])
   t.throws(
     () => c.next.call(null),
-    { code: 'FLUENTE_UNBOUND' }
+    { message: 'Unbound call' }
   )
   t.throws(
     () => c.unwrap.call(null),
-    { code: 'FLUENTE_UNBOUND' }
+    { message: 'Unbound call' }
   )
 })
