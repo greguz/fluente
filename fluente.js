@@ -44,16 +44,13 @@ function readContext (state) {
   return state.present
 }
 
-function assignState (state, partial) {
-  return Object.assign({}, state, partial)
-}
-
 function updateState (state, present) {
-  return assignState(state, {
+  return {
+    ...state,
     past: takeRight([...state.past, state.present], state.historySize),
     present,
     future: []
-  })
+  }
 }
 
 function moveState (state, steps, forward) {
@@ -68,11 +65,12 @@ function moveState (state, steps, forward) {
     present = source.pop()
   }
 
-  return assignState(state, {
+  return {
+    ...state,
     past,
     present,
     future
-  })
+  }
 }
 
 function bindDescriptors (descriptors, obj) {
