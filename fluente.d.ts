@@ -10,7 +10,10 @@ export declare type FluentMethods<S> = Collection<StateMapper<S, FluentOutput<S>
 
 export declare type NormalMethods<S> = Collection<StateMapper<S, any>>
 
-export declare type Producer<S> = (state: S, mapper: (state: S) => FluentOutput<S>) => S
+export declare type Producer<S> = (
+  state: S,
+  mapper: (state: S) => FluentOutput<S>
+) => S
 
 export interface Options<
   S,
@@ -30,11 +33,11 @@ export interface Options<
 
 export declare type OmitState<T, S> = T extends (state: S, ...args: infer A) => infer R
   ? (...args: A) => R
-  : any
+  : never
 
 export declare type SetResult<T, R> = T extends (...args: infer A) => any
   ? (...args: A) => R
-  : any
+  : never
 
 export declare type Instance<
   S,
@@ -48,8 +51,8 @@ export declare type Instance<
 } & {
   [K in keyof C]: C[K]
 } & {
-  undo (steps?: number): Instance<S, F, M, C>
-  redo (steps?: number): Instance<S, F, M, C>
+  undo(steps?: number): Instance<S, F, M, C>
+  redo(steps?: number): Instance<S, F, M, C>
 }
 
 declare function fluente<
@@ -57,7 +60,7 @@ declare function fluente<
   F extends FluentMethods<S>,
   M extends NormalMethods<S>,
   C extends Collection<any>
-> (
+>(
   options: Options<S, F, M, C>
 ): Instance<S, F, M, C>;
 
