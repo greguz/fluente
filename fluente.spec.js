@@ -214,7 +214,7 @@ test('binding', t => {
     return state.value
   }
 
-  let a = fluente({
+  const a = fluente({
     // hardBinding: undefined,
     constants,
     state: {
