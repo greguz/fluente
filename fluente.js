@@ -3,7 +3,7 @@
 const stateSymbol = Symbol('fluente')
 
 function getState (obj) {
-  if (typeof obj === 'object' && obj !== null && obj.hasOwnProperty(stateSymbol)) {
+  if (typeof obj === 'object' && obj !== null && Object.prototype.hasOwnProperty.call(obj, stateSymbol)) {
     return obj[stateSymbol]
   } else {
     throw new Error('Unbound call')
@@ -32,8 +32,8 @@ function parseNumber (value, defaultValue) {
   return value === undefined
     ? defaultValue
     : typeof value !== 'number' || isNaN(value) || value < 0
-    ? 0
-    : value
+      ? 0
+      : value
 }
 
 function defaultProducer (state, mapper) {
@@ -112,7 +112,7 @@ function fluentify (fn, key) {
       const state = getState(this)
       const out = state.produce(
         readContext(state),
-        context => fn.call(null, context, ...args)
+        context => fn(context, ...args)
       )
       return updateObject(this, updateState(state, out))
     },
@@ -124,7 +124,7 @@ function fluentify (fn, key) {
 function methodify (fn, key) {
   return Object.defineProperty(
     function (...args) {
-      return fn.call(null, readContext(getState(this)), ...args)
+      return fn(readContext(getState(this)), ...args)
     },
     'name',
     { value: key }
