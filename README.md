@@ -1,8 +1,9 @@
 # fluente
 
 [![npm version](https://badge.fury.io/js/fluente.svg)](https://badge.fury.io/js/fluente)
+[![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 [![Dependencies Status](https://david-dm.org/greguz/fluente.svg)](https://david-dm.org/greguz/fluente.svg)
-[![Build Status](https://travis-ci.com/greguz/fluente.svg?branch=master)](https://travis-ci.com/greguz/fluente)
+[![Actions Status](https://github.com/greguz/fluente/workflows/ci/badge.svg)](https://github.com/greguz/fluente/actions)
 [![Coverage Status](https://coveralls.io/repos/github/greguz/fluente/badge.svg?branch=master)](https://coveralls.io/github/greguz/fluente?branch=master)
 
 Make fluent objects like a boss!
