@@ -190,7 +190,7 @@ function createDescriptors (constants, normalMethods, fluentMethods) {
 
 module.exports = function fluente (options) {
   return createObject({
-    historySize: parseNumber('historySize option', options.historySize, 0),
+    historySize: parseNumber('historySize', options.historySize, 0),
     isMutable: options.isMutable === true,
     hardBinding: options.hardBinding === true,
     past: [],
