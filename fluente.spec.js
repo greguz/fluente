@@ -30,6 +30,8 @@ test('interface', t => {
   t.true(typeof instance.b === 'function')
   t.is(instance.c, 42)
   t.true(instance[sym])
+  t.throws(() => instance.undo(), { message: 'History is disabled' })
+  t.throws(() => instance.redo(), { message: 'History is disabled' })
 })
 
 test('lifecycle', t => {
@@ -161,6 +163,7 @@ test('steps validation', t => {
 
 test('mutable', t => {
   const instance = fluente({
+    historySize: 4,
     isMutable: true,
     state: {
       value: 0

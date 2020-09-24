@@ -45,6 +45,10 @@ function readContext (state) {
 }
 
 function updateState (state, present) {
+  if (state.historySize < 1) {
+    return { ...state, present }
+  }
+
   return {
     ...state,
     past: takeRight([...state.past, state.present], state.historySize),
@@ -54,6 +58,10 @@ function updateState (state, present) {
 }
 
 function moveState (state, steps, forward) {
+  if (state.historySize < 1) {
+    throw new Error('History is disabled')
+  }
+
   const past = state.past.slice()
   let present = readContext(state)
   const future = state.future.slice()
@@ -180,7 +188,7 @@ function createDescriptors (constants, normalMethods, fluentMethods) {
 
 module.exports = function fluente (options) {
   return createObject({
-    historySize: parseNumber(options.historySize, 10),
+    historySize: parseNumber(options.historySize, 0),
     isMutable: options.isMutable === true,
     hardBinding: options.hardBinding === true,
     past: [],

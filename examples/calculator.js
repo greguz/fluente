@@ -30,6 +30,8 @@ function divide (state, value) {
 
 function createCalculator (initialValue = 0) {
   return fluente({
+    // Enable state history
+    historySize: 8,
     // Initial state
     state: {
       value: initialValue

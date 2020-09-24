@@ -3,6 +3,8 @@ const immer = require('immer')
 
 function createCalculator (initialValue = 0) {
   return fluente({
+    // Enable state history
+    historySize: 8,
     // Use Immer to handle state changes
     produce: immer.produce,
     // Initial state

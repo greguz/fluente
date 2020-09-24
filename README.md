@@ -58,6 +58,8 @@ function divide (state, value) {
 
 function createCalculator (initialValue = 0) {
   return fluente({
+    // Enable state history
+    historySize: 8,
     // Initial state
     state: {
       value: initialValue
@@ -154,7 +156,7 @@ const result = calculator
 console.log(result) // Logs '42'
 ```
 
-Fluente takes state mappers as input and returns the built object. The state is hidden, preventing external access. And a nice [undo-redo](#undo-and-redo) feature is added.
+Fluente takes state mappers as input and returns the built object. The state is hidden, preventing external access.
 
 ```javascript
 const fluente = require('fluente')
@@ -188,9 +190,6 @@ function createCalculator (initialValue = 0) {
 
 const result = createCalculator(40)
   .add(2)
-  .add(NaN)
-  .undo(2) // Undo 2 mutations: add(NaN) and add(2)
-  .redo(1) // Redo 1 mutation: add(2)
   .unwrap()
 
 console.log(result) // Logs '42'
@@ -312,7 +311,7 @@ An isolated state enables easy undo-redo implementation. The current state repre
 
 Fluente automatically injects undo-redo functions. Both functions optionally accept the number of mutations to apply, defaulting to `1` mutation. `Infinity` is accepted, and means "redo/undo all the mutations available".
 
-The `historySize` option controls the max number of mutations remembered by Fluente. It's set to `10` by default, to limit memory usage.
+The `historySize` option controls the max number of mutations remembered by Fluente. Set the `historySize` option to a positive number to enable this feature.
 
 ## Mutability
 
