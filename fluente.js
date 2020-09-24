@@ -10,16 +10,12 @@ function getState (obj) {
   }
 }
 
-function set (obj, path, value) {
-  obj[path] = value
-  return obj
-}
-
-function mapValues (obj, iteratee) {
-  return Reflect.ownKeys(obj).reduce(
-    (acc, key) => set(acc, key, iteratee(obj[key], key)),
-    {}
-  )
+function mapValues (obj, mapper) {
+  const out = {}
+  for (const key of Reflect.ownKeys(obj)) {
+    out[key] = mapper(obj[key], key)
+  }
+  return out
 }
 
 function takeRight (array, n) {
