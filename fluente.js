@@ -28,14 +28,14 @@ function takeRight (array, n) {
     : array
 }
 
-function isValidNumber (value) {
-  return (Number.isInteger(value) && value >= 0) || value === Number.POSITIVE_INFINITY
-}
-
-function parseNumber (value, fallback) {
-  return value === undefined
-    ? fallback
-    : isValidNumber(value) ? value : 0
+function parseNumber (subject, value, fallback) {
+  if (value === undefined) {
+    return fallback
+  } else if ((Number.isInteger(value) && value >= 0) || value === Number.POSITIVE_INFINITY) {
+    return value
+  } else {
+    throw new TypeError(subject + ': expected zero, a positive integer, or Infinity')
+  }
 }
 
 function defaultProducer (state, mapper) {
@@ -144,14 +144,14 @@ function methodify (fn, key) {
 function undo (steps) {
   return updateObject(
     this,
-    moveState(getState(this), parseNumber(steps, 1), false)
+    moveState(getState(this), parseNumber('Undo steps', steps, 1), false)
   )
 }
 
 function redo (steps) {
   return updateObject(
     this,
-    moveState(getState(this), parseNumber(steps, 1), true)
+    moveState(getState(this), parseNumber('Redo steps', steps, 1), true)
   )
 }
 
@@ -190,7 +190,7 @@ function createDescriptors (constants, normalMethods, fluentMethods) {
 
 module.exports = function fluente (options) {
   return createObject({
-    historySize: parseNumber(options.historySize, 0),
+    historySize: parseNumber('historySize option', options.historySize, 0),
     isMutable: options.isMutable === true,
     hardBinding: options.hardBinding === true,
     past: [],

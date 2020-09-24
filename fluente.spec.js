@@ -32,6 +32,7 @@ test('interface', t => {
   t.true(instance[sym])
   t.throws(() => instance.undo(), { message: 'History is disabled' })
   t.throws(() => instance.redo(), { message: 'History is disabled' })
+  t.throws(() => fluente({ historySize: null }))
 })
 
 test('lifecycle', t => {
@@ -145,20 +146,20 @@ test('steps validation', t => {
     }
   })
 
-  const result = instance
+  const obj = instance
     .add(1)
     .add(1)
     .add(1)
     .add(1)
     .add(1)
-    .undo(null)
-    .undo('1')
-    .undo(NaN)
-    .undo(-5)
-    .undo(-Infinity)
-    .unwrap()
 
-  t.is(result, 5)
+  t.throws(() => obj.undo(null))
+  t.throws(() => obj.undo('1'))
+  t.throws(() => obj.undo(NaN))
+  t.throws(() => obj.undo(-5))
+  t.throws(() => obj.undo(-Infinity))
+
+  t.is(obj.unwrap(), 5)
 })
 
 test('mutable', t => {
