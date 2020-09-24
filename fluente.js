@@ -28,12 +28,14 @@ function takeRight (array, n) {
     : array
 }
 
-function parseNumber (value, defaultValue) {
+function isValidNumber (value) {
+  return (Number.isInteger(value) && value >= 0) || value === Number.POSITIVE_INFINITY
+}
+
+function parseNumber (value, fallback) {
   return value === undefined
-    ? defaultValue
-    : typeof value !== 'number' || isNaN(value) || value < 0
-      ? 0
-      : value
+    ? fallback
+    : isValidNumber(value) ? value : 0
 }
 
 function defaultProducer (state, mapper) {
