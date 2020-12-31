@@ -17,9 +17,9 @@
     "redo"
   ],
   "scripts": {
-    "test:lint": "eslint **/*.js",
-    "test:unit": "nyc --reporter=lcov --reporter=text-summary ava",
-    "test": "npm run test:lint && npm run test:unit"
+    "lint": "eslint **/*.js",
+    "test": "nyc --reporter=lcov --reporter=text-summary ava",
+    "prepublishOnly": "npm run lint && npm run test"
   },
   "author": "Giacomo Gregoletto",
   "license": "MIT",
