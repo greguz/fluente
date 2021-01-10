@@ -1,6 +1,6 @@
 'use strict'
 
-const symbol = Symbol.for('fluente')
+const symbol = Symbol('fluente')
 
 function getState (obj) {
   if (typeof obj === 'object' && obj !== null && Object.prototype.hasOwnProperty.call(obj, symbol)) {
