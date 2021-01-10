@@ -27,8 +27,7 @@ export interface Options<
   constants?: C
   produce?: Producer<S>
   historySize?: number
-  isMutable?: boolean
-  hardBinding?: boolean
+  mutable?: boolean
 }
 
 export declare type OmitState<T, S> = T extends (state: S, ...args: infer A) => infer R

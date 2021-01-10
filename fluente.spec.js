@@ -104,9 +104,9 @@ test('historySize', t => {
   t.is(five.undo(5).redo(3).unwrap(), 5)
 })
 
-test('isMutable', t => {
+test('mutable', t => {
   const instance = fluente({
-    isMutable: true,
+    mutable: true,
     state: {
       value: 0
     },

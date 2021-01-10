@@ -1,10 +1,10 @@
 'use strict'
 
-const stateSymbol = Symbol('fluente')
+const symbol = Symbol.for('fluente')
 
 function getState (obj) {
-  if (typeof obj === 'object' && obj !== null && Object.prototype.hasOwnProperty.call(obj, stateSymbol)) {
-    return obj[stateSymbol]
+  if (typeof obj === 'object' && obj !== null && Object.prototype.hasOwnProperty.call(obj, symbol)) {
+    return obj[symbol]
   } else {
     throw new Error('Unbound call')
   }
@@ -81,17 +81,17 @@ function moveState (state, steps, forward) {
 
 function createObject (state) {
   const obj = {}
-  Object.defineProperty(obj, stateSymbol, {
+  Object.defineProperty(obj, symbol, {
     value: state,
-    writable: state.isMutable === true
+    writable: state.mutable === true
   })
   Object.defineProperties(obj, state.descriptors)
   return obj
 }
 
 function updateObject (obj, state) {
-  if (state.isMutable === true) {
-    obj[stateSymbol] = state
+  if (state.mutable === true) {
+    obj[symbol] = state
     return obj
   } else {
     return createObject(state)
@@ -173,7 +173,7 @@ function createDescriptors (constants, normalMethods, fluentMethods) {
 module.exports = function fluente (options) {
   return createObject({
     historySize: parseNumber('historySize', options.historySize, 0),
-    isMutable: options.isMutable === true,
+    mutable: options.mutable === true,
     past: [],
     present: options.state || {},
     future: [],

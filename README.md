@@ -110,7 +110,7 @@ The whole library consists of just one function. Everything is optional.
   - `constants` `<Object>`
   - `produce` `<Function>` See [state manipulation](#state-manipulation).
   - `historySize` `<Number>` See [undo and redo](#undo-and-redo).
-  - `isMutable` `<Boolean>` See [mutability](#mutability).
+  - `mutable` `<Boolean>` See [mutability](#mutability).
 - Returns: `<Object>`
 
 ## State mappers
@@ -313,13 +313,13 @@ The `historySize` option controls the max number of mutations remembered by Flue
 
 ## Mutability
 
-By default, calling a fluent method will return a **new** object containing the updated state. Enabling `isMutable` option will cause the fluent methods to return the same object with the internal state updated, emulating the traditional `class` behavior.
+By default, calling a fluent method will return a **new** object containing the updated state. Enabling `mutable` option will cause the fluent methods to return the same object with the internal state updated, emulating the traditional `class` behavior.
 
 ```javascript
 function createMutableCalculator (initialValue = 0) {
   return fluente({
     // Enable mutable mode
-    isMutable: true,
+    mutable: true,
     state: {
       value: initialValue
     },
