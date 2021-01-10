@@ -79,27 +79,13 @@ function moveState (state, steps, forward) {
   }
 }
 
-function bindDescriptors (descriptors, obj) {
-  return mapValues(descriptors, descriptor => ({
-    ...descriptor,
-    value: typeof descriptor.value === 'function'
-      ? descriptor.value.bind(obj)
-      : descriptor.value
-  }))
-}
-
 function createObject (state) {
   const obj = {}
   Object.defineProperty(obj, stateSymbol, {
     value: state,
     writable: state.isMutable === true
   })
-  Object.defineProperties(
-    obj,
-    state.hardBinding === true
-      ? bindDescriptors(state.descriptors, obj)
-      : state.descriptors
-  )
+  Object.defineProperties(obj, state.descriptors)
   return obj
 }
 
@@ -188,7 +174,6 @@ module.exports = function fluente (options) {
   return createObject({
     historySize: parseNumber('historySize', options.historySize, 0),
     isMutable: options.isMutable === true,
-    hardBinding: options.hardBinding === true,
     past: [],
     present: options.state || {},
     future: [],

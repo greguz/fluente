@@ -14,7 +14,6 @@ Make fluent objects like a boss!
 - **Protected state**
 - **Undo/Redo out of the box**
 - **Selective mutability**: choose between immutable objects or a classy object.
-- **Hard binding**: call any method without worrying about context.
 - **TypeScript support**
 
 ## Installation
@@ -112,7 +111,6 @@ The whole library consists of just one function. Everything is optional.
   - `produce` `<Function>` See [state manipulation](#state-manipulation).
   - `historySize` `<Number>` See [undo and redo](#undo-and-redo).
   - `isMutable` `<Boolean>` See [mutability](#mutability).
-  - `hardBinding` `<Boolean>` See [hard binding](#hard-binding).
 - Returns: `<Object>`
 
 ## State mappers
@@ -343,49 +341,4 @@ calculator
   .add(4)
   .add(8)
 console.log(calculator.unwrap()) // Logs '14'
-```
-
-## Hard binding
-
-Calling a Fluente generated method outside its context (object) will result in an error throw. Enabling the hard binding will secure any method to its correct context.
-
-```javascript
-function createBoundCalculator (initialValue = 0) {
-  return fluente({
-    // Enable hard binding
-    hardBinding: true,
-    state: {
-      value: initialValue
-    },
-    fluent: {
-      add,
-      subtract,
-      multiply,
-      divide
-    },
-    methods: {
-      unwrap
-    }
-  })
-}
-
-const calculator = createBoundCalculator(0)
-  .add.call(null, 10)
-  .add.call(null, 12)
-  .add.call(null, 22)
-  .subtract.call(null, 2)
-
-console.log(calculator.unwrap()) // Logs '42'
-```
-
-By default, Fluente will throw an 'Unbound call' error when necessary.
-
-```javascript
-const calculator = createNormalCalculator(0)
-
-try {
-  calculator.add.call(null, 1)
-} catch (err) {
-  console.log(err) // Error: Unbound call
-}
 ```
