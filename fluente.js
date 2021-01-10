@@ -66,6 +66,11 @@ function moveState (state, steps, forward) {
 
   const source = forward ? future : past
   const target = forward ? past : future
+
+  if (Number.isFinite(steps) && steps > source.length) {
+    throw new Error('State history is empty')
+  }
+
   for (let i = 0; i < steps && source.length > 0; i++) {
     target.push(present)
     present = source.pop()

@@ -101,7 +101,8 @@ test('historySize', t => {
   t.is(five.undo(Infinity).redo(2).unwrap(), 4)
   t.is(five.undo().unwrap(), 4)
   t.is(five.undo(Infinity).redo(Infinity).unwrap(), 5)
-  t.is(five.undo(5).redo(3).unwrap(), 5)
+  t.is(five.undo(3).redo(3).unwrap(), 5)
+  t.throws(() => five.undo(4), { message: 'State history is empty' })
 })
 
 test('mutable', t => {
