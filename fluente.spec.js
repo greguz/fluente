@@ -1,3 +1,5 @@
+'use strict'
+
 const test = require('ava')
 const immer = require('immer')
 const immutable = require('immutable')
@@ -17,7 +19,10 @@ test('interface', t => {
   const sym = Symbol('test')
 
   const instance = fluente({
-    fluent: {
+    state: {
+      d: true
+    },
+    mappers: {
       a: noop
     },
     methods: {
@@ -26,6 +31,9 @@ test('interface', t => {
     constants: {
       c: 42,
       [sym]: true
+    },
+    getters: {
+      d: state => state.d
     }
   })
 
@@ -34,7 +42,8 @@ test('interface', t => {
   t.true(typeof instance.a === 'function')
   t.true(typeof instance.b === 'function')
   t.is(instance.c, 42)
-  t.true(instance[sym])
+  t.is(instance.d, true)
+  t.is(instance[sym], true)
 })
 
 test('lifecycle', t => {
@@ -44,7 +53,7 @@ test('lifecycle', t => {
     state: {
       value: 0
     },
-    fluent: {
+    mappers: {
       add (state, value) {
         t.pass()
         return {
@@ -76,7 +85,7 @@ test('historySize', t => {
     state: {
       value: 0
     },
-    fluent: {
+    mappers: {
       add (state, value) {
         return {
           value: state.value + value
@@ -111,7 +120,7 @@ test('mutable', t => {
     state: {
       value: 0
     },
-    fluent: {
+    mappers: {
       add (state, value) {
         return {
           value: state.value + value
@@ -136,29 +145,27 @@ test('mutable', t => {
 })
 
 test('errors', t => {
-  const historySizeInvalid = { message: 'historySize: expected zero, a positive integer, or Infinity' }
-  const noHistory = { message: 'History is disabled' }
-  const undoInvalid = { message: 'Undo steps: expected zero, a positive integer, or Infinity' }
-  const redoInvalid = { message: 'Redo steps: expected zero, a positive integer, or Infinity' }
+  const errInvalidNumber = { message: 'Expected zero, a positive integer, or Infinity' }
+  const errNoHistory = { message: 'History is disabled' }
 
-  t.throws(() => fluente({ historySize: null }), historySizeInvalid)
-  t.throws(() => fluente({ historySize: -Infinity }), historySizeInvalid)
-  t.throws(() => fluente({ historySize: -1 }), historySizeInvalid)
-  t.throws(() => fluente({ historySize: 1.1 }), historySizeInvalid)
+  t.throws(() => fluente({ historySize: null }), errInvalidNumber)
+  t.throws(() => fluente({ historySize: -Infinity }), errInvalidNumber)
+  t.throws(() => fluente({ historySize: -1 }), errInvalidNumber)
+  t.throws(() => fluente({ historySize: 1.1 }), errInvalidNumber)
 
   const a = fluente({})
-  t.throws(() => a.undo(), noHistory)
-  t.throws(() => a.redo(), noHistory)
+  t.throws(() => a.undo(), errNoHistory)
+  t.throws(() => a.redo(), errNoHistory)
 
   const b = fluente({ historySize: 1 })
-  t.throws(() => b.undo(null), undoInvalid)
-  t.throws(() => b.undo(-Infinity), undoInvalid)
-  t.throws(() => b.undo(-1), undoInvalid)
-  t.throws(() => b.undo(1.1), undoInvalid)
-  t.throws(() => b.redo(null), redoInvalid)
-  t.throws(() => b.redo(-Infinity), redoInvalid)
-  t.throws(() => b.redo(-1), redoInvalid)
-  t.throws(() => b.redo(1.1), redoInvalid)
+  t.throws(() => b.undo(null), errInvalidNumber)
+  t.throws(() => b.undo(-Infinity), errInvalidNumber)
+  t.throws(() => b.undo(-1), errInvalidNumber)
+  t.throws(() => b.undo(1.1), errInvalidNumber)
+  t.throws(() => b.redo(null), errInvalidNumber)
+  t.throws(() => b.redo(-Infinity), errInvalidNumber)
+  t.throws(() => b.redo(-1), errInvalidNumber)
+  t.throws(() => b.redo(1.1), errInvalidNumber)
 })
 
 test('immer', t => {
@@ -169,7 +176,7 @@ test('immer', t => {
     state: {
       value: 0
     },
-    fluent: {
+    mappers: {
       add (state, value) {
         t.pass()
         state.value += value
@@ -195,7 +202,7 @@ test('immutable', t => {
     state: immutable.Map({
       value: 0
     }),
-    fluent: {
+    mappers: {
       add (state, value) {
         t.pass()
         return state.set(
@@ -214,4 +221,27 @@ test('immutable', t => {
 
   t.is(instance.add(+1).unwrap(), +1)
   t.is(instance.add(-1).unwrap(), -1)
+})
+
+test('getters', t => {
+  t.plan(4)
+
+  const instance = fluente({
+    state: {
+      a: 1,
+      b: 2,
+      c: 4
+    },
+    getters: {
+      a: state => state.a,
+      b: state => state.b,
+      c: state => state.c
+    }
+  })
+
+  t.is(instance.a, 1)
+  t.is(instance.b, 2)
+  t.is(instance.c, 4)
+
+  t.throws(() => instance.a = 4)
 })

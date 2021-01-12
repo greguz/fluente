@@ -24,14 +24,11 @@ function takeRight (array, n) {
     : array
 }
 
-function parseNumber (subject, value, fallback) {
-  if (value === undefined) {
-    return fallback
-  } else if ((Number.isInteger(value) && value >= 0) || value === Number.POSITIVE_INFINITY) {
-    return value
-  } else {
-    throw new TypeError(subject + ': expected zero, a positive integer, or Infinity')
+function ensureValidNumber (value) {
+  if (!(Number.isInteger(value) && value >= 0) && value !== Number.POSITIVE_INFINITY) {
+    throw new Error('Expected zero, a positive integer, or Infinity')
   }
+  return value
 }
 
 function defaultProducer (state, mapper) {
@@ -103,7 +100,7 @@ function updateObject (obj, state) {
   }
 }
 
-function fluentify (fn, key) {
+function wrapMapper (fn, key) {
   return Object.defineProperty(
     function (...args) {
       const state = getState(this)
@@ -118,7 +115,7 @@ function fluentify (fn, key) {
   )
 }
 
-function methodify (fn, key) {
+function wrapMethod (fn, key) {
   return Object.defineProperty(
     function (...args) {
       return fn(readContext(getState(this)), ...args)
@@ -128,21 +125,31 @@ function methodify (fn, key) {
   )
 }
 
-function undo (steps) {
+function wrapGetter (fn) {
+  return function getter () {
+    return fn(readContext(getState(this)))
+  }
+}
+
+function noSet () {
+  throw new Error('This property does not have a setter')
+}
+
+function undo (steps = 1) {
   return updateObject(
     this,
-    moveState(getState(this), parseNumber('Undo steps', steps, 1), false)
+    moveState(getState(this), ensureValidNumber(steps), false)
   )
 }
 
-function redo (steps) {
+function redo (steps = 1) {
   return updateObject(
     this,
-    moveState(getState(this), parseNumber('Redo steps', steps, 1), true)
+    moveState(getState(this), ensureValidNumber(steps), true)
   )
 }
 
-function createDescriptors (constants, normalMethods, fluentMethods) {
+function createDescriptors (constants, getters, mappers, methods) {
   return Object.assign(
     {
       undo: {
@@ -162,31 +169,42 @@ function createDescriptors (constants, normalMethods, fluentMethods) {
       value,
       writable: true
     })),
-    mapValues(normalMethods, (fn, key) => ({
+    mapValues(getters, fn => ({
       configurable: true,
-      value: methodify(fn, key),
+      enumerable: true,
+      get: wrapGetter(fn),
+      set: noSet
+    })),
+    mapValues(mappers, (fn, key) => ({
+      configurable: true,
+      value: wrapMapper(fn, key),
       writable: true
     })),
-    mapValues(fluentMethods, (fn, key) => ({
+    mapValues(methods, (fn, key) => ({
       configurable: true,
-      value: fluentify(fn, key),
+      value: wrapMethod(fn, key),
       writable: true
     }))
   )
 }
 
-module.exports = function fluente (options) {
+module.exports = function fluente ({
+  constants = {},
+  getters = {},
+  historySize = 0,
+  mappers = {},
+  methods = {},
+  mutable = false,
+  produce = defaultProducer,
+  state
+}) {
   return createObject({
-    historySize: parseNumber('historySize', options.historySize, 0),
-    mutable: options.mutable === true,
+    historySize: ensureValidNumber(historySize),
+    mutable,
     past: [],
-    present: options.state || {},
+    present: state,
     future: [],
-    produce: options.produce || defaultProducer,
-    descriptors: createDescriptors(
-      options.constants || {},
-      options.methods || {},
-      options.fluent || {}
-    )
+    produce,
+    descriptors: createDescriptors(constants, getters, mappers, methods)
   })
 }

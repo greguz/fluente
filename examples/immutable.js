@@ -32,7 +32,7 @@ function createCalculator (initialValue = 0) {
       value: initialValue
     }),
     // Fluent mappers (update state)
-    fluent: {
+    mappers: {
       add,
       subtract,
       multiply,
