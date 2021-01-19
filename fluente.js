@@ -100,7 +100,7 @@ function updateObject (obj, state) {
   }
 }
 
-function wrapMapper (fn, key) {
+function wrapFluentMethod (fn, key) {
   return Object.defineProperty(
     function (...args) {
       const state = getState(this)
@@ -115,7 +115,7 @@ function wrapMapper (fn, key) {
   )
 }
 
-function wrapMethod (fn, key) {
+function wrapMapMethod (fn, key) {
   return Object.defineProperty(
     function (...args) {
       return fn(readContext(getState(this)), ...args)
@@ -149,7 +149,7 @@ function redo (steps = 1) {
   )
 }
 
-function createDescriptors (constants, getters, mappers, methods) {
+function createDescriptors (constants, getters, fluents, mappers) {
   return Object.assign(
     {
       undo: {
@@ -175,14 +175,14 @@ function createDescriptors (constants, getters, mappers, methods) {
       get: wrapGetter(fn),
       set: noSet
     })),
-    mapValues(mappers, (fn, key) => ({
+    mapValues(fluents, (fn, key) => ({
       configurable: true,
-      value: wrapMapper(fn, key),
+      value: wrapFluentMethod(fn, key),
       writable: true
     })),
-    mapValues(methods, (fn, key) => ({
+    mapValues(mappers, (fn, key) => ({
       configurable: true,
-      value: wrapMethod(fn, key),
+      value: wrapMapMethod(fn, key),
       writable: true
     }))
   )
@@ -190,10 +190,10 @@ function createDescriptors (constants, getters, mappers, methods) {
 
 module.exports = function fluente ({
   constants = {},
+  fluents = {},
   getters = {},
   historySize = 0,
   mappers = {},
-  methods = {},
   mutable = false,
   produce = defaultProducer,
   state
@@ -205,6 +205,6 @@ module.exports = function fluente ({
     present: state,
     future: [],
     produce,
-    descriptors: createDescriptors(constants, getters, mappers, methods)
+    descriptors: createDescriptors(constants, getters, fluents, mappers)
   })
 }

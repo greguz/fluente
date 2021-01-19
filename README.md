@@ -8,12 +8,12 @@
 
 Make fluent objects like a boss!
 
-## Core features
+## Features
 
 - **Zero dependencies**: small footprint.
 - **Protected state**
-- **Undo/Redo out of the box**
 - **Selective mutability**: choose between immutable objects or a classy object.
+- **Undo/Redo out of the box**
 - **TypeScript support**
 
 ## Installation
@@ -22,176 +22,191 @@ Make fluent objects like a boss!
 npm install --save fluente
 ```
 
-## Example
+## fluente(options)
+
+Returns the build object.
+
+- `options` `<Object>`
+  - `state` `<Object>` Initial state.
+  - `[constants]` `<Object>` Constant values.
+  - `[getters]` `<Object>` Value getters.
+  - `[fluents]` `<Object>` Fluent methods.
+  - `[mappers]` `<Object>` Map (normal) methods.
+  - `[mutable]` `<Boolean>` See [mutability](#mutability).
+  - `[historySize]` `<Number>` See [undo and redo](#undo-and-redo).
+  - `[produce]` `<Function>` See [state manipulation](#state-manipulation).
+- Returns: `<Object>`
+
+## Quickstart
+
+The easiest way to create a _fluent_ API is by returning the instance itself inside a class method.
+
+```javascript
+class Calculator {
+  constructor (value = 0) {
+    this.value = value
+  }
+
+  add (value) {
+    this.value += value
+    return this // Fluent API
+  }
+
+  valueOf () {
+    return this.value
+  }
+}
+
+const calculator = new Calculator(0)
+
+const value = calculator
+  .add(2)
+  .add(4)
+  .add(8)
+  .add(16)
+  .valueOf()
+
+console.log(value) // 30
+```
+
+Fluente provides a different way to declare _fluent_ objects.
 
 ```javascript
 const fluente = require('fluente')
 
-function unwrap (state) {
+const symCalculator = Symbol('my_calculator')
+
+function valueOf (state) {
   return state.value
 }
 
 function add (state, value) {
   return {
-    value: unwrap(state) + value
+    value: valueOf(state) + value
   }
 }
 
 function subtract (state, value) {
   return {
-    value: unwrap(state) - value
+    value: valueOf(state) - value
   }
 }
 
 function multiply (state, value) {
   return {
-    value: unwrap(state) * value
+    value: valueOf(state) * value
   }
 }
 
 function divide (state, value) {
   return {
-    value: unwrap(state) / value
+    value: valueOf(state) / value
   }
 }
 
-function createCalculator (initialValue = 0) {
+function createCalculator (value = 0) {
   return fluente({
-    // Enable state history
+    // Enable state history (undo/redo)
     historySize: 8,
     // Initial state
     state: {
-      value: initialValue
+      value
     },
-    // Fluent mappers (update state)
-    fluent: {
+    // Object constants
+    constants: {
+      [symCalculator]: true
+    },
+    // Value getters
+    getters: {
+      value: valueOf,
+      integer: state => Number.isInteger(valueOf(state))
+    },
+    // Fluent methods
+    fluents: {
       add,
       subtract,
       multiply,
       divide
     },
-    // Normal mappers (transform state)
-    methods: {
-      unwrap
-    },
-    // Constant properties
-    constants: {
-      [Symbol.for('calculator')]: true
+    // Map (normal) methods
+    mappers: {
+      valueOf
     }
   })
 }
 
-const calculator = createCalculator()
+const zero = createCalculator(0)
 
-if (calculator[Symbol.for('calculator')] !== true) {
+// Read constant value
+if (zero[symCalculator] !== true) {
   throw new Error('Expected calculator')
 }
 
-const result = calculator
+// Read value getters
+console.log(zero.value, zero.integer) // 0 true
+
+// Use fluent method
+const pi = zero.add(Math.PI)
+
+console.log(pi.value, pi.integer) // 3.141592653589793 false
+
+const value = zero
   .add(2)
-  .subtract(4)
+  .subtract(8)
   .multiply(-1)
   .divide(2)
   .undo(2) // Undo 2 mutations: divide(2) and multiply(-1)
   .redo(1) // Redo 1 mutation: multiply(-1)
-  .unwrap()
+  .valueOf() // Use map method
 
-console.log(result) // Logs '2'
+console.log(value) // 6
 ```
 
-## fluente(options)
+Like a `constructor`, Fluente returns an object. You can still declare methods, constants, and getters, but with a different signature. Functions do not use the `this` keyword to access the state. Instead, It's always passed as the first argument. Another key difference is how fluent methods mutate the state: by returning an object that contains the changed values.
 
-The whole library consists of just one function. Everything is optional.
+These rules abstract the methods (and getters) definition and the state mutation, unlocking some cool features like selective mutability, state protection, and undo/redo.
 
-- `options` `<Object>`
-  - `state` `<Object>` Initial state.
-  - `fluent` `<Object>` Fluent state mappers.
-  - `methods` `<Object>` Normal state mappers.
-  - `constants` `<Object>`
-  - `produce` `<Function>` See [state manipulation](#state-manipulation).
-  - `historySize` `<Number>` See [undo and redo](#undo-and-redo).
-  - `mutable` `<Boolean>` See [mutability](#mutability).
-- Returns: `<Object>`
+## Mutability
 
-## State mappers
-
-A fluent method is a function that updates its state and then returns its context. Classes use "`return this`" approach, Closures use recursion to achieve this result. In any case, there's some glue-code to write to make it happen.
-
-Any function (or method) essentially is just a state mapper: a function that takes some arguments and then maps its current state into something useful. Fluent functions perform some state updates. Normal functions map the state into something new.
-
-```javascript
-class Calculator {
-  constructor (initialValue = 0) {
-    // Init state
-    this._value = initialValue
-  }
-
-  /**
-   * Fluent method
-   */
-  add (value) {
-    // Update state
-    this._value += value
-    // Return context
-    return this
-  }
-
-  /**
-   * Normal method
-   */
-  unwrap () {
-    // Map state to number
-    return this._value
-  }
-}
-
-const calculator = new Calculator(40)
-
-const result = calculator
-  .add(2)
-  .unwrap()
-
-console.log(result) // Logs '42'
-```
-
-Fluente takes state mappers as input and returns the built object. The state is hidden, preventing external access.
+By default, all objects build by Fluente are **immutable** (all _fluent_ methods will return a new object containing the updated state). You can retrieve mutable objects using the `mutable` option.
 
 ```javascript
 const fluente = require('fluente')
 
-function unwrap (state) {
-  return state.value
-}
-
-function add (state, value) {
-  return {
-    value: unwrap(state) + value
-  }
-}
-
 function createCalculator (initialValue = 0) {
   return fluente({
-    // Initial state
+    mutable: true, // Request mutable object
     state: {
       value: initialValue
     },
-    // Fluent mappers (update state)
-    fluent: {
-      add
+    fluents: {
+      add (state, value) {
+        return {
+          value: state.value + value
+        }
+      }
     },
-    // Normal mappers (transform state)
-    methods: {
-      unwrap
+    mappers: {
+      valueOf (state) {
+        return state.value
+      }
     }
   })
 }
 
-const result = createCalculator(40)
-  .add(2)
-  .unwrap()
-
-console.log(result) // Logs '42'
+const calculator = createCalculator(0)
+calculator.add(40)
+calculator.add(2)
+console.log(calculator.valueOf()) // 42
 ```
+
+## Undo and Redo
+
+An isolated state enables easy undo-redo implementation. The current state represents the present moment. Applying a mutation move the present into the past, and set a new present state. Undoing a mutation will restore a state from the past, and move the present state into the future. Redoing a mutation will do the opposite. A more detailed example is available in [this](https://redux.js.org/recipes/implementing-undo-history) Redux article.
+
+Fluente automatically injects undo-redo functions. Both functions optionally accept the number of mutations to apply, defaulting to `1` mutation. `Infinity` is accepted, and means "redo/undo all the mutations available".
+
+The `historySize` option controls the max number of mutations remembered by Fluente. Set the `historySize` option to a positive number to enable this feature.
 
 ## State manipulation
 
@@ -221,19 +236,17 @@ function mySimpleProducer (oldState, mapper) {
 
 function createCalculator (initialValue = 0) {
   return fluente({
-    // Define custom producer
-    produce: mySimpleProducer,
+    produce: mySimpleProducer, // Use a custom producer
     state: {
       value: initialValue
     },
-    fluent: {
+    fluents: {
       add (state, value) {
-        // Direct state manipulation
-        state.value += value
+        state.value += value // Direct state manipulation
       }
     },
-    methods: {
-      unwrap (state) {
+    mappers: {
+      valueOf (state) {
         return state.value
       }
     }
@@ -245,23 +258,21 @@ The easiest and safest way to support direct state manipulation is to use [Immer
 
 ```javascript
 const fluente = require('fluente')
-const immer = require('immer')
+const { produce } = require('immer')
 
 function createCalculator (initialValue = 0) {
   return fluente({
-    // Use Immer to handle state changes
-    produce: immer.produce,
+    produce, // Use Immer to handle state changes
     state: {
       value: initialValue
     },
-    fluent: {
+    fluents: {
       add (state, value) {
-        // Direct state manipulation
-        state.value += value
+        state.value += value // Direct state manipulation
       }
     },
-    methods: {
-      unwrap (state) {
+    mappers: {
+      valueOf (state) {
         return state.value
       }
     },
@@ -275,12 +286,12 @@ function createCalculator (initialValue = 0) {
 const fluente = require('fluente')
 const { Map } = require('immutable')
 
-function unwrap (state) {
+function valueOf (state) {
   return state.get('value')
 }
 
 function add (state, value) {
-  return state.set('value', unwrap(state) + value)
+  return state.set('value', valueOf(state) + value)
 }
 
 function createCalculator (initialValue = 0) {
@@ -291,54 +302,12 @@ function createCalculator (initialValue = 0) {
     state: Map({
       value: initialValue
     }),
-    fluent: {
+    fluents: {
       add
     },
-    methods: {
-      unwrap
+    mappers: {
+      valueOf
     }
   })
 }
-```
-
-There's an `examples` directory inside this repo.
-
-## Undo and Redo
-
-An isolated state enables easy undo-redo implementation. The current state represents the present moment. Applying a mutation move the present into the past, and set a new present state. Undoing a mutation will restore a state from the past, and move the present state into the future. Redoing a mutation will do the opposite. A more detailed example is available in [this](https://redux.js.org/recipes/implementing-undo-history) Redux article.
-
-Fluente automatically injects undo-redo functions. Both functions optionally accept the number of mutations to apply, defaulting to `1` mutation. `Infinity` is accepted, and means "redo/undo all the mutations available".
-
-The `historySize` option controls the max number of mutations remembered by Fluente. Set the `historySize` option to a positive number to enable this feature.
-
-## Mutability
-
-By default, calling a fluent method will return a **new** object containing the updated state. Enabling `mutable` option will cause the fluent methods to return the same object with the internal state updated, emulating the traditional `class` behavior.
-
-```javascript
-function createMutableCalculator (initialValue = 0) {
-  return fluente({
-    // Enable mutable mode
-    mutable: true,
-    state: {
-      value: initialValue
-    },
-    fluent: {
-      add,
-      subtract,
-      multiply,
-      divide
-    },
-    methods: {
-      unwrap
-    }
-  })
-}
-
-const calculator = createMutableCalculator(0)
-calculator.add(2)
-calculator
-  .add(4)
-  .add(8)
-console.log(calculator.unwrap()) // Logs '14'
 ```

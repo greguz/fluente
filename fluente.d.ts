@@ -1,27 +1,23 @@
-export interface Collection<T> {
-  [key: string]: T
-}
-
 export declare type Getter<S> = (state: S) => any
 
-export declare type Mapper<S> = (state: S, ...args: any[]) => S | Partial<S> | undefined | void
+export declare type Fluent<S> = (state: S, ...args: any[]) => S | Partial<S> | undefined | void
 
-export declare type Method<S> = (state: S, ...args: any[]) => any
+export declare type Mapper<S> = (state: S, ...args: any[]) => any
 
 export declare type Produce<S> = (state: S, mapper: (state: S) => any) => S
 
 export interface Options<
   S extends object,
-  C extends Collection<any>,
-  G extends Collection<Getter<S>>,
-  F extends Collection<Mapper<S>>,
-  M extends Collection<Method<S>>
+  C extends Record<any, any>,
+  G extends Record<string, Getter<S>>,
+  F extends Record<string, Fluent<S>>,
+  M extends Record<string, Mapper<S>>
 > {
   state: S
   constants?: C
   getters?: G
-  mappers?: F
-  methods?: M
+  fluents?: F
+  mappers?: M
   historySize?: number
   mutable?: boolean
   produce?: Produce<S>
@@ -41,10 +37,10 @@ export declare type GetResult<T> = T extends (state: any) => infer R
 
 export declare type Instance<
   S extends object,
-  C extends Collection<any>,
-  G extends Collection<Getter<S>>,
-  F extends Collection<Mapper<S>>,
-  M extends Collection<Method<S>>
+  C extends Record<any, any>,
+  G extends Record<string, Getter<S>>,
+  F extends Record<string, Fluent<S>>,
+  M extends Record<string, Mapper<S>>
 > = {
   undo(steps?: number): Instance<S, C, G, F, M>
   redo(steps?: number): Instance<S, C, G, F, M>
@@ -60,10 +56,10 @@ export declare type Instance<
 
 declare function fluente<
   S extends object,
-  C extends Collection<any>,
-  G extends Collection<Getter<S>>,
-  F extends Collection<Mapper<S>>,
-  M extends Collection<Method<S>>
+  C extends Record<any, any>,
+  G extends Record<string, Getter<S>>,
+  F extends Record<string, Fluent<S>>,
+  M extends Record<string, Mapper<S>>
 >(
   options: Options<S, C, G, F, M>
 ): Instance<S, C, G, F, M>;

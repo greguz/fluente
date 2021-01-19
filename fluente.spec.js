@@ -16,34 +16,34 @@ test('defaults', t => {
 })
 
 test('interface', t => {
-  const sym = Symbol('test')
+  const symbol = Symbol('test')
 
   const instance = fluente({
     state: {
-      d: true
-    },
-    mappers: {
-      a: noop
-    },
-    methods: {
-      b: noop
+      value: 1
     },
     constants: {
-      c: 42,
-      [sym]: true
+      constant: 2,
+      [symbol]: 3
     },
     getters: {
-      d: state => state.d
+      getter: state => state.value
+    },
+    fluents: {
+      fMethod: noop
+    },
+    mappers: {
+      mMethod: noop
     }
   })
 
+  t.is(instance.constant, 2)
+  t.is(instance[symbol], 3)
+  t.is(instance.getter, 1)
+  t.true(typeof instance.fMethod === 'function')
+  t.true(typeof instance.mMethod === 'function')
   t.true(typeof instance.undo === 'function')
   t.true(typeof instance.redo === 'function')
-  t.true(typeof instance.a === 'function')
-  t.true(typeof instance.b === 'function')
-  t.is(instance.c, 42)
-  t.is(instance.d, true)
-  t.is(instance[sym], true)
 })
 
 test('lifecycle', t => {
@@ -53,7 +53,7 @@ test('lifecycle', t => {
     state: {
       value: 0
     },
-    mappers: {
+    fluents: {
       add (state, value) {
         t.pass()
         return {
@@ -61,7 +61,7 @@ test('lifecycle', t => {
         }
       }
     },
-    methods: {
+    mappers: {
       unwrap (state) {
         return state.value
       }
@@ -85,14 +85,14 @@ test('historySize', t => {
     state: {
       value: 0
     },
-    mappers: {
+    fluents: {
       add (state, value) {
         return {
           value: state.value + value
         }
       }
     },
-    methods: {
+    mappers: {
       unwrap (state) {
         return state.value
       }
@@ -120,14 +120,14 @@ test('mutable', t => {
     state: {
       value: 0
     },
-    mappers: {
+    fluents: {
       add (state, value) {
         return {
           value: state.value + value
         }
       }
     },
-    methods: {
+    mappers: {
       unwrap (state) {
         return state.value
       }
@@ -176,13 +176,13 @@ test('immer', t => {
     state: {
       value: 0
     },
-    mappers: {
+    fluents: {
       add (state, value) {
         t.pass()
         state.value += value
       }
     },
-    methods: {
+    mappers: {
       unwrap (state) {
         t.pass()
         return state.value
@@ -202,7 +202,7 @@ test('immutable', t => {
     state: immutable.Map({
       value: 0
     }),
-    mappers: {
+    fluents: {
       add (state, value) {
         t.pass()
         return state.set(
@@ -211,7 +211,7 @@ test('immutable', t => {
         )
       }
     },
-    methods: {
+    mappers: {
       unwrap (state) {
         t.pass()
         return state.get('value')

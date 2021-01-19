@@ -1,68 +1,83 @@
-const fluente = require('fluente')
+const fluente = require('../fluente')
 const { Map } = require('immutable')
 
-function unwrap (state) {
+const symCalculator = Symbol('my_calculator')
+
+function valueOf (state) {
   return state.get('value')
 }
 
 function add (state, value) {
-  return state.set('value', unwrap(state) + value)
+  return state.set('value', valueOf(state) + value)
 }
 
 function subtract (state, value) {
-  return state.set('value', unwrap(state) - value)
+  return state.set('value', valueOf(state) - value)
 }
 
 function multiply (state, value) {
-  return state.set('value', unwrap(state) * value)
+  return state.set('value', valueOf(state) * value)
 }
 
 function divide (state, value) {
-  return state.set('value', unwrap(state) / value)
+  return state.set('value', valueOf(state) / value)
 }
 
-function createCalculator (initialValue = 0) {
+function createCalculator (value = 0) {
   return fluente({
-    // Enable state history
+    // Enable state history (undo/redo)
     historySize: 8,
-    // Direct mapping (fluent mappers need to return the updated state)
+    // Configure immutable state mapping
     produce: (state, mapper) => mapper(state),
-    // Initial state (init with Immutable.js)
+    // Initial state
     state: Map({
-      value: initialValue
+      value
     }),
-    // Fluent mappers (update state)
-    mappers: {
+    // Object constants
+    constants: {
+      [symCalculator]: true
+    },
+    // Value getters
+    getters: {
+      value: valueOf,
+      integer: state => Number.isInteger(valueOf(state))
+    },
+    // Fluent methods
+    fluents: {
       add,
       subtract,
       multiply,
       divide
     },
-    // Normal mappers (transform state)
-    methods: {
-      unwrap
-    },
-    // Constant properties
-    constants: {
-      [Symbol.for('calculator')]: true
+    // Map (normal) methods
+    mappers: {
+      valueOf
     }
   })
 }
 
-const calculator = createCalculator()
+const zero = createCalculator(0)
 
-if (calculator[Symbol.for('calculator')] !== true) {
+// Read constant value
+if (zero[symCalculator] !== true) {
   throw new Error('Expected calculator')
 }
 
-const result = calculator
+// Read value getters
+console.log(zero.value, zero.integer) // 0 true
+
+// Use fluent method
+const pi = zero.add(Math.PI)
+
+console.log(pi.value, pi.integer) // 3.141592653589793 false
+
+const value = zero
   .add(2)
-  .subtract(4)
+  .subtract(8)
   .multiply(-1)
   .divide(2)
   .undo(2) // Undo 2 mutations: divide(2) and multiply(-1)
   .redo(1) // Redo 1 mutation: multiply(-1)
-  .unwrap()
+  .valueOf() // Use map method
 
-// Logs '2'
-console.log(result)
+console.log(value) // 6
