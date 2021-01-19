@@ -1,6 +1,6 @@
 {
   "name": "fluente",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "description": "Make fluent objects like a boss!",
   "main": "fluente.js",
   "types": "fluente.d.ts",
