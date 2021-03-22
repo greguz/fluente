@@ -6,7 +6,7 @@ function getState (obj) {
   if (typeof obj === 'object' && obj !== null && Object.prototype.hasOwnProperty.call(obj, symbol)) {
     return obj[symbol]
   } else {
-    throw new Error('Unbound call')
+    throw new Error('Unbound fluent call')
   }
 }
 
@@ -125,10 +125,14 @@ function wrapMapMethod (fn, key) {
   )
 }
 
-function wrapGetter (fn) {
-  return function getter () {
-    return fn(readContext(getState(this)))
-  }
+function wrapGetter (fn, key) {
+  return Object.defineProperty(
+    function () {
+      return fn(readContext(getState(this)))
+    },
+    'name',
+    { value: key }
+  )
 }
 
 function noSet () {
@@ -169,10 +173,10 @@ function createDescriptors (constants, getters, fluents, mappers) {
       value,
       writable: true
     })),
-    mapValues(getters, fn => ({
+    mapValues(getters, (fn, key) => ({
       configurable: true,
       enumerable: true,
-      get: wrapGetter(fn),
+      get: wrapGetter(fn, key),
       set: noSet
     })),
     mapValues(fluents, (fn, key) => ({

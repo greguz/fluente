@@ -27,7 +27,7 @@ test('interface', t => {
       [symbol]: 3
     },
     getters: {
-      getter: state => state.value
+      value: state => state.value
     },
     fluents: {
       fMethod: noop
@@ -39,11 +39,15 @@ test('interface', t => {
 
   t.is(instance.constant, 2)
   t.is(instance[symbol], 3)
-  t.is(instance.getter, 1)
+  t.is(instance.value, 1)
   t.true(typeof instance.fMethod === 'function')
+  t.is(instance.fMethod.name, 'fMethod')
   t.true(typeof instance.mMethod === 'function')
+  t.is(instance.mMethod.name, 'mMethod')
   t.true(typeof instance.undo === 'function')
+  t.is(instance.undo.name, 'undo')
   t.true(typeof instance.redo === 'function')
+  t.is(instance.redo.name, 'redo')
 })
 
 test('lifecycle', t => {
